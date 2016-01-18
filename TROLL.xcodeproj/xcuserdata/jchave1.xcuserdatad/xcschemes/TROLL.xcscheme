@@ -61,6 +61,16 @@
             ReferencedContainer = "container:TROLL.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-i/Users/jchave1/Documents/Projets/TROLL/TROLL.v16.01.2016/input_param_TROLL_16_01_14_monthly.txt"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-o/Users/jchave1/Documents/Projets/TROLL/TROLL.v16.01.2016/resu/toto"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
