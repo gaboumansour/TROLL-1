@@ -1,30 +1,28 @@
-
-
-
-
-
 /*####################################################################
  ###  TROLL
- ###  History :
- ###    version 0.0 --- JC - 22 Sep 97
- ###    version 1.0 --- JC - 06 Oct 97
- ###    version 2.0 --- JC - 11-14 Nov 97
- ###    version 3.0 --- JC - 02-30 Sep 98
- ###    version 3.2 --- JC - 22 Jan 00
- ###	version 3.3 --- JC - 28 Sep 01
+ ###  Individual-based forest dynamics simulator
+ ###    Version 1: Jerome Chave
+ ###    Version 2: Isabelle Marechaux & Jerome Chave
  ###
- ###	version 4.0 --- JC - 23 Mar 11
+ ###  History:
+ ###    version 0.1 --- JC - 22 Sep 97
+ ###    version 0.2 --- JC - 06 Oct 97
+ ###    version 0.3 --- JC - 11-14 Nov 97
+ ###    version 1.0 --- JC - stable version Chave, Ecological Modelling (1999)
+ ###    version 1.1 --- JC - 02-30 Sep 98
+ ###    version 1.2 --- JC - 22 Jan 00
+ ###	version 1.3 --- JC - 28 Sep 01 stable version Chave, American Naturalist (2001)
  ###
- ###    version 4.1 --- IM - oct-nov 13
- ###    version 4.2 --- IM - avril-mai 2015
- ###    version 4.3 --- IM - juillet 2015
- ###    version 4.4 --- IM - juillet 2015 (monthly timestep)
- ###    version 4.5 --- IM - decembre 2015 (undef/defined alternative versions)
- ###    version 4.6 --- IM - janvier 2016 (timestep better used and two input files - one for species, one for climate and environment parameters)
+ ###	version 2.0 --- JC - 23 Mar 11 (physiology-based version, translation of comments into English)
+ ###    version 2.01 --- IM - oct-nov 13
+ ###    version 2.02 --- IM - apr-may 2015
+ ###    version 2.03 --- IM - jul 2015
+ ###    version 2.04 --- IM - jul 2015 (monthly timestep)
+ ###    version 2.1 --- IM - dec 2015 (undef/defined alternative versions)
+ ###    version 2.11 --- IM - jan 2016 (timestep better used and two input files - one for species, one for climate and environment parameters)
+ ###    version 2.12 --- JC - jan 2016 porting to GitHub for social coding, check of the MPI routines and update, new header for code, trivia: reindentation (orphan lines removed)
  ###
  ####################################################################*/
-
-
 
 
 /*
@@ -60,11 +58,7 @@
 # include "mpi.h"
 # endif
 
-
-
 using namespace std;
-
-
 
 /* Global constants */
 # define Pis2 1.570796327
@@ -75,7 +69,6 @@ using namespace std;
 # define PERSNB 500
 int col0, row0, col, row, xx, yy, dm, haut;
 char buffer[256], nomfi[256], nomf0[256], *bufi(0), *buf(0);
-
 
 
 /* random number generators */
@@ -108,7 +101,6 @@ iter,               /* current timestep */
 nbout,              /* nb of outputs */
 freqout;            /* frequency HDF outputs */
 
-
 int HEIGHT,         /* max height (in m) */
 dbhmaxincm,         /* max DBH times 100 (ie dbh in cm *100 = in meters) */
 RMAX,               /* max crown radius */
@@ -127,7 +119,6 @@ nbs0,               /* nb of seeds produced and dispersed by each mature tree wh
 Cair;               /* atmosphericCO2 concentration, if we aim at make CO2 vary (scenario), CO2 will have to have the same status as other climatic variables  */
 
 float daily_light[24];    /* normalized (ie between 0 and 1) daily light variation (added 30/07/15, used if define DAILYLIGHT) */
-
 
 
 /*********************************************/
@@ -153,8 +144,6 @@ Wmax,               /* Daily max irradiance (average for timestep) (in micromol 
 Wmean,              /* mean irradiance (in W.m2)*/
 e_s,                /* SaturatedVapourPressure */
 e_a;                /* VapourPressure*/
-
-
 
 
 /****************************************/
@@ -185,9 +174,6 @@ float  *PROB_S (0);
 #endif
 
 
-
-
-
 /***************/
 /* Diagnostics */
 /***************/
@@ -208,16 +194,12 @@ unsigned short *tempch;
 int *tempch2(0);
 
 
-
-
-
 /**************/
 /* Processors */
 /**************/
 
 int p_rank;
 int size;
-
 
 
 /******************/
@@ -231,9 +213,6 @@ MPI_ShareSeed(unsigned char **,int),
 MPI_ShareField(unsigned short **,unsigned short ***,int),
 MPI_ShareTreefall(unsigned short **,int);
 #endif
-
-
-
 
 
 /**********************/
@@ -252,11 +231,6 @@ Average(void),
 OutputField(void),
 //  SorCh(unsigned short*, int, int, fstream &),
 FreeMem(void);
-
-
-
-
-
 
 
 /****************************/
@@ -294,18 +268,13 @@ inline int sgn(float f) {
 }
 
 
-
-
-
 /*############################################
  ############################################
  ###########     Species  class   ###########
  ############################################
  ############################################*/
 
-
 class Species {
-    
     
 public:
     int    s_nbind,			/* nb of individuals per species */
@@ -375,13 +344,10 @@ public:
 };
 
 
-
-
 /*############################
  ###  Initialize Species  ###
  ###    Species::Init     ###
  ############################*/
-
 
 void Species::Init(int nesp,fstream& is) {
     
@@ -450,13 +416,7 @@ void Species::Init(int nesp,fstream& is) {
         for(site=0;site<sites;site++) s_Gc[i][site]=0;
     }
 #endif
-    
-    
-    
-    
 }
-
-
 
 
 /*############################
@@ -465,7 +425,6 @@ void Species::Init(int nesp,fstream& is) {
  ###  Species::UpdateSeed  ###
  ###   Species::AddSeed    ###
  #############################*/
-
 
 /*###  Species::FillSeed  ###*/
 /* creates one seed at point (col,row) */
@@ -498,11 +457,8 @@ Nearest neighboring stripes are shared. Rque, this version is not valid ifdef SE
             if(s_Gc[1][site]!=1) s_Gc[1][site]=1;
         }
 #endif
-        
     }
-    
 }
-
 
 
 /*### Species::UpdateSeed ###*/
@@ -523,8 +479,6 @@ void Species::UpdateSeed(int age, int site) {
     }
 #endif
 }
-
-
 
 
 #ifdef MPI
@@ -549,19 +503,14 @@ void Species::AddSeed() {
 #endif
 
 
-
-
 /*############################
  ###   Species::DeathRate  ###
  #############################*/
-
 
 /* Here we assume a light-dependent version of the mortality.
  dr is the minimal species death rate, depending on the species wood density. This basal death rate is increased by density-dependence effect that impact survival of trees with a dbh<10cm .
  In addition, when NPPleaf (PPFD) is smaller than the light compensation point (quantified by ratio), mortality risk is increased.
  */
-
-
 
 #ifdef NDD
 
@@ -588,7 +537,6 @@ inline float Species::DeathRate(float PPFD, float dbh, float ndd) {
 }
 
 #else
-
 
 inline float Species::DeathRate(float PPFD, float dbh) {
     
@@ -621,13 +569,9 @@ inline float Species::DeathRate(float PPFD, float dbh) {
  ###           Species:: NPPLeaf           ###
  #############################################*/
 
-
 /* This function returns the leaf-level carbon assimilation rate  in micromoles C/m^2/s */
 /* A version of this model could account for changes in temperature (increased T)
  We ignore this here, but this could be added using Bernacchi et al. (2001) if we want to make temperature vary*/
-
-
-
 
 inline float Species::GPPleaf(float PPFD) {
     
@@ -648,7 +592,6 @@ inline float Species::GPPleaf(float PPFD) {
     //s_fci = -0.04*s_d13C-0.2*(log(PPFD)-s_factord13Cb)*s_factord13Ca-0.54;
     s_fci = minf(-0.04*s_d13C-0.3*(log(PPFD)-s_factord13Cb)*s_factord13Ca-0.57, 1.0);               //min added 21-04-2015: in order to prevent ci:ca bigger than 1 (even though Ehleringer et al 1986 reported some values above 1 (Fig3)
     
-    
     if (iter == int(nbiter/2))  {
         sor[14]<< s_name << "\t" << PPFD << "\t" << s_LCP << "\t" << s_fci << "\n";
     }
@@ -659,7 +602,6 @@ inline float Species::GPPleaf(float PPFD) {
     /* modified to be consistent with Farquhar's model (01/2015 IM) */
     
     return A;
-    
     
 }
 
@@ -680,7 +622,6 @@ inline float Species::dailyGPPleaf(float PPFD) {
 #endif
 
 
-
 /* NPPleaf returns the net assimilation rate of carbon, ie the gross assimilation minus the respiration rate */
 
 inline float Species::NPPleaf(float PPFD) {
@@ -698,13 +639,7 @@ inline float Species::NPPleaf(float PPFD) {
     //this multiplication by 2 is clearly discutable
     
     return NPP;
-    
-    
 }
-
-
-
-
 
 
 /*############################################
@@ -713,18 +648,12 @@ inline float Species::NPPleaf(float PPFD) {
  ############################################
  ############################################*/
 
-
-
-
-
 class Tree {
     
 private:
 #ifdef TREEFALL
     t_C;                    /* flexural force intensity */
 #endif
-    
-    
     
 public:
     int   t_site;           /* location */
@@ -749,8 +678,6 @@ public:
     float *t_NDDfield;
     
     Species *t_s;
-    
-    
     
     unsigned short
     t_sp_lab,               /* species label */
@@ -790,13 +717,7 @@ public:
     void TrunkLAI();                /* computation  of trunk LAI */
     void histdbh();                 /* computation of dbh histograms */
     
-    
-    
 };
-
-
-
-
 
 
 /*##############################################
@@ -804,9 +725,7 @@ public:
  ####  called by BirthInit and UpdateTree   ####
  ##############################################*/
 
-
 void Tree::Birth(Species *S, int nume, int site0) {
-    
     
     t_site = site0;
     t_sp_lab = nume;            /* t_sp_lab is the species label of a site. Can be defined even if the site is empty
@@ -852,16 +771,10 @@ void Tree::Birth(Species *S, int nume, int site0) {
 }
 
 
-
-
-
-
-
 /*################################################
  #### Contribution of each tree in LAI field  ####
  ####          called by UpdateField          ####
  #################################################*/
-
 
 void Tree::CalcLAI() {
     
@@ -884,7 +797,6 @@ void Tree::CalcLAI() {
                         
                         if (haut0==haut) LAI3D[h][col+cols*row+SBORD]*=t_Crown_Depth;                   //add on 28/04/2015, in order to prevent too big contribution of little trees (with crown depth lower than 1m) in LAI at ground level.
                     }
-                
             }
         }
     }
@@ -902,20 +814,10 @@ void Tree::CalcLAI() {
  }*/
 
 
-
-
-
-
-
-
-
 /*###################################################
  ####  Computation of PPFD right above the tree  ####
  ####    called by Tree::Birth and Growth        ####
  ####################################################*/
-
-
-
 
 /* Tree::Flux() computes the average light flux recieved by the tree crown top layer (ie at h=Tree_height) */
 
@@ -966,9 +868,7 @@ void Tree::CalcLAI() {
  */
 
 
-
 /* Tree::Fluxh() computes the average light flux received by a tree crown layer at height h */
-
 
 float Tree::Fluxh(int h) {
     
@@ -1003,7 +903,6 @@ float Tree::Fluxh(int h) {
                         absorb = LAI3D[h][col+cols*row+SBORD];        // modified 22-04-2015 according to modification in Tree::CalcLAI
                     }
                     flux += exp(-absorb*klight);
-                    
                 }
             }
         }
@@ -1013,30 +912,12 @@ float Tree::Fluxh(int h) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*############################################
  ####            Tree growth              ####
  ####         called by UpdateTree        ####
  #############################################*/
 
-
-
 void Tree::Growth() {
-    
-    
     float leafarea=dens*(PI*t_Crown_Radius*LH*t_Crown_Radius*LH)*LV;                              // this is the expression of leaf area that matches with the use Fluxh(); instead of Flux(); (ie. not multiplied by t_Crown_Depth)
     
     t_GPP=0;
@@ -1076,11 +957,7 @@ void Tree::Growth() {
             t_GPP+=t_s->GPPleaf(f);
 #endif
         }
-        
         //t_GPP*=t_Crown_Depth/int(t_Crown_Depth);
-        
-        
-        
     }
     
 #endif
@@ -1130,7 +1007,6 @@ void Tree::Growth() {
         }
         
         t_dbh += t_ddbh*ratio;
-        
     }
     
     t_Tree_Height = (t_s->s_hmax) * t_dbh/(t_dbh + (t_s->s_ah));                            /* update of tree height */
@@ -1151,18 +1027,13 @@ void Tree::Growth() {
     
     t_age+= timestep;
     //if (int(t_Crown_Depth)>1) t_PPFD=Flux();
-    
 }
-
-
-
 
 
 /*####################################################
  ####           Death of the tree                ####
  ####         called by Tree::Update             ####
  ####################################################*/
-
 
 void Tree::Death() {
     
@@ -1180,14 +1051,10 @@ void Tree::Death() {
 }
 
 
-
-
-
 /*#################################
  ####	   Seeds dispersion    ####
  ####  called by UpdateField   ###
  #################################*/
-
 
 void Tree::DisperseSeed(){
     
@@ -1204,7 +1071,6 @@ void Tree::DisperseSeed(){
         nbs=nbs0;
 #endif
         
-        
         for(int ii=0;ii<nbs;ii++){                                                 /* Loop over number of produced seeds */
             
             rho = 2*((t_s->s_ds)+t_Crown_Radius)*float(sqrt(fabs(log(genrand2()*iPi))));    /* Dispersal distance rho: P(rho) = rho*exp(-rho^2) */
@@ -1217,13 +1083,10 @@ void Tree::DisperseSeed(){
 }
 
 
-
-
 /*##################################
  ####	 Tree geometry update   ####
  ####   called by UpdateTree   ####
  ##################################*/
-
 
 void Tree::Update() {
     
@@ -1249,1580 +1112,1435 @@ void Tree::Update() {
                 t_hurt = 0;
                 Growth();
             }
-            
+#ifdef NDD
         }
-        
+#else
+    }
+#endif
+    
+}
+
+
+/*##################################
+ ####	       Treefall         ####
+ #### called by UpdateTreefall ####
+ ##################################*/
+
+void Tree::FallTree() {
+    
+#ifdef TREEFALL                                                             /* above a given stress threshold the tree falls */
+    if(Couple()>t_Ct) {
+#else
+        if(genrand2()*t_Tree_Height > t_Ct){
+            float t_angle = float(deuPi*genrand2());
+            
+#endif
+            int h;
+            float hvrai = t_Tree_Height*LV;
+            nbTreefall1++;
+            if(t_dbh*LH>0.1) nbTreefall10++;
+            Thurt[0][t_site+sites] = int(t_Tree_Height);
+            
+            row0=t_site/cols;                                               /* fallen stem destructs other trees */
+            col0=t_site%cols;
+            haut = int(hvrai*NH);
+            for(h=1;h<haut;h++) {                                           /* loop on the fallen stem (horizontally) */
+                xx=int(flor(col0+h*cos(t_angle)));
+                if(xx<cols){
+                    yy=   int(row0+h*sin(t_angle));
+                    Thurt[0][xx+(yy+rows)*cols] = int(t_Tree_Height);
+                }
+            }
+            
+            xx=col0+int((hvrai*NH-t_Crown_Radius)*cos(t_angle));            /* fallen crown destructs other trees */
+            yy=row0+int((hvrai*NH-t_Crown_Radius)*sin(t_angle));
+            h = int(t_Crown_Radius);
+            for(col=max(0,xx-h);col<min(cols,xx+h+1);col++) {                /* loop on the fallen crown (horizontally) */
+                for(row=yy-h;row<yy+h+1;row++) {
+                    if((col-xx)*(col-xx)+(row-yy)*(row-yy)<h*h)
+                        Thurt[0][col+(row+rows)*cols] = int((t_Tree_Height-t_Crown_Radius*NV*LH)*0.5);
+                }
+            }
+            Death();
+        }
+#ifdef TREEFALL
+    }
+#else
+}
+#endif
+
+#ifdef TREEFALL
+int Tree::Couple() {
+    int site2,quadist,h,haut0;
+    float fx, fy,temp,lai;
+    
+    dm = int(t_Crown_Radius);
+    haut = int(t_Tree_Height);
+    haut0 = int(t_Tree_Height-t_Crown_Depth);
+    if(dm){
+        row0=t_site/cols;
+        col0=t_site%cols;
+        fx = fy = 0.0;
+        for(col=max(0,col0-dm);col<min(cols,col0+dm+1);col++) {
+            for(row=row0-dm;row<=row0+dm;row++) {
+                xx=col0-col;
+                yy=row0-row;
+                quadist = xx*xx+yy*yy;
+                if((quadist<=dm*dm)&&quadist) {
+                    //site2 = col+cols*(row+RMAX); //modif 23/03/2011
+                    site2 = col+cols*row+SBORD;
+                    for(h=haut0;h<=haut;h++) {
+                        if(haut<HEIGHT)
+                            lai = LAI3D[haut][site2]-LAI3D[haut+1][site2];
+                        else  lai = LAI3D[haut][site2];
+                        if(lai>dens) { // needs to be changed when TREEFALL is revised
+                            temp = 1.0/sqrt(float(quadist));
+                            if(temp>0.0) {
+                                fx += float(xx)*temp;
+                                fy += float(yy)*temp;
+                            }
+                        }
+                    }
+                    
+                }
+            }
+        }
+        t_C = int(sqrt(fx*fx+fy*fy)*t_Tree_Height);
+        if(fx!=0.0) t_angle=atan2(fy,fx);
+        else t_angle = Pis2*sgn(fy);
+    }
+    else{t_C = 0; t_angle = 0.0; }
+    return t_C;
+}
+#endif
+
+
+/*####################################################
+ ####      For Average and OutputField           ####
+ ####################################################*/
+
+void Tree::Average() {
+    
+    if(t_age) {
+        if(t_dbh*LH >= 0.1) {
+            (t_s->s_chsor[1])++;
+            t_s->s_chsor[6] += t_dbh*LH*t_dbh*LH;
+        }
+        if(t_dbh*LH >= 0.3) (t_s->s_chsor[2])++;
+        t_s->s_chsor[3] += t_dbh*LH*t_dbh*LH;
+        t_s->s_chsor[4] += t_NPPleaf*1.0e-6;
+        t_s->s_chsor[5] += t_GPP*1.0e-6;
+        t_s->s_chsor[7] += 0.0673*pow(t_s->s_wsg*t_Tree_Height*LV*t_dbh*t_dbh*LH*LH*10000, 0.976);  // this is the allometrtic equ 4 in Chave et al. 2014 Global Change Biology to compute above ground biomass
     }
     
+}
+
+
+void Tree::histdbh() {
+    if(t_age&&(t_age<500))
+        nbdbh[int(100.*t_dbh*LH)]++;                // compute the diameter distribution density
+    // where dbh is in cm (it is in number of horizontal cells throughout the code)
+}
+
+
+/*--------------------------------------------------------------*/
+/*--------------------------------------------------------------*/
+/*--------------------------------------------------------------*/
+/*--------------------------------------------------------------*/
+
+
+//#define NIV_PERS 20
+
+/* Class objects */
+
+Species *S=NULL;
+Tree *T=NULL;
+
+//int *distr;
+
+
+/*############################################
+ ############################################
+ ############     MAIN PROGRAM    ###########
+ ############################################
+ ############################################*/
+
+int main(int argc,char *argv[]) {
+    
+    /***********************/
+    /*** Initializations ***/
+    /***********************/
     
     
-    
-    /*##################################
-     ####	       Treefall         ####
-     #### called by UpdateTreefall ####
-     ##################################*/
-    
-    
-    void Tree::FallTree() {
-        
-#ifdef TREEFALL                                                             /* above a given stress threshold the tree falls */
-        if(Couple()>t_Ct) {
-#else
-            if(genrand2()*t_Tree_Height > t_Ct){
-                float t_angle = float(deuPi*genrand2());
-                
-#endif
-                int h;
-                float hvrai = t_Tree_Height*LV;
-                nbTreefall1++;
-                if(t_dbh*LH>0.1) nbTreefall10++;
-                Thurt[0][t_site+sites] = int(t_Tree_Height);
-                
-                row0=t_site/cols;                                               /* fallen stem destructs other trees */
-                col0=t_site%cols;
-                haut = int(hvrai*NH);
-                for(h=1;h<haut;h++) {                                           /* loop on the fallen stem (horizontally) */
-                    xx=int(flor(col0+h*cos(t_angle)));
-                    if(xx<cols){
-                        yy=   int(row0+h*sin(t_angle));
-                        Thurt[0][xx+(yy+rows)*cols] = int(t_Tree_Height);
-                    }
-                }
-                
-                xx=col0+int((hvrai*NH-t_Crown_Radius)*cos(t_angle));            /* fallen crown destructs other trees */
-                yy=row0+int((hvrai*NH-t_Crown_Radius)*sin(t_angle));
-                h = int(t_Crown_Radius);
-                for(col=max(0,xx-h);col<min(cols,xx+h+1);col++) {                /* loop on the fallen crown (horizontally) */
-                    for(row=yy-h;row<yy+h+1;row++) {
-                        if((col-xx)*(col-xx)+(row-yy)*(row-yy)<h*h)
-                            Thurt[0][col+(row+rows)*cols] = int((t_Tree_Height-t_Crown_Radius*NV*LH)*0.5);
-                    }
-                }
-                
-                Death();
-            }
-            
-        }
-        
-        
-        
-        
-#ifdef TREEFALL
-        int Tree::Couple() {
-            int site2,quadist,h,haut0;
-            float fx, fy,temp,lai;
-            
-            dm = int(t_Crown_Radius);
-            haut = int(t_Tree_Height);
-            haut0 = int(t_Tree_Height-t_Crown_Depth);
-            if(dm){
-                row0=t_site/cols;
-                col0=t_site%cols;
-                fx = fy = 0.0;
-                for(col=max(0,col0-dm);col<min(cols,col0+dm+1);col++) {
-                    for(row=row0-dm;row<=row0+dm;row++) {
-                        xx=col0-col;
-                        yy=row0-row;
-                        quadist = xx*xx+yy*yy;
-                        if((quadist<=dm*dm)&&quadist) {
-                            //site2 = col+cols*(row+RMAX); //modif 23/03/2011
-                            site2 = col+cols*row+SBORD;
-                            for(h=haut0;h<=haut;h++) {
-                                if(haut<HEIGHT)
-                                    lai = LAI3D[haut][site2]-LAI3D[haut+1][site2];
-                                else  lai = LAI3D[haut][site2];
-                                if(lai>dens) { // needs to be changed when TREEFALL is revised
-                                    temp = 1.0/sqrt(float(quadist));
-                                    if(temp>0.0) {
-                                        fx += float(xx)*temp;
-                                        fy += float(yy)*temp;
-                                    }
-                                }
-                            }
-                            
-                        }
-                    }
-                }
-                t_C = int(sqrt(fx*fx+fy*fy)*t_Tree_Height);
-                if(fx!=0.0) t_angle=atan2(fy,fx);
-                else t_angle = Pis2*sgn(fy);
-            }
-            else{t_C = 0; t_angle = 0.0; }
-            return t_C;
-        }
-#endif
-        
-        
-        
-        
-        
-        
-        
-        /*####################################################
-         ####      For Average and OutputField           ####
-         ####################################################*/
-        
-        
-        void Tree::Average() {
-            
-            if(t_age) {
-                if(t_dbh*LH >= 0.1) {
-                    (t_s->s_chsor[1])++;
-                    t_s->s_chsor[6] += t_dbh*LH*t_dbh*LH;
-                }
-                if(t_dbh*LH >= 0.3) (t_s->s_chsor[2])++;
-                t_s->s_chsor[3] += t_dbh*LH*t_dbh*LH;
-                t_s->s_chsor[4] += t_NPPleaf*1.0e-6;
-                t_s->s_chsor[5] += t_GPP*1.0e-6;
-                t_s->s_chsor[7] += 0.0673*pow(t_s->s_wsg*t_Tree_Height*LV*t_dbh*t_dbh*LH*LH*10000, 0.976);  // this is the allometrtic equ 4 in Chave et al. 2014 Global Change Biology to compute above ground biomass
-            }
-            
-        }
-        
-        
-        
-        void Tree::histdbh() {
-            if(t_age&&(t_age<500))
-                nbdbh[int(100.*t_dbh*LH)]++;                // compute the diameter distribution density
-            // where dbh is in cm (it is in number of horizontal cells throughout the code)
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        /*------------------------------------------------------------------------------------------------------------------*/
-        /*------------------------------------------------------------------------------------------------------------------*/
-        /*------------------------------------------------------------------------------------------------------------------*/
-        /*------------------------------------------------------------------------------------------------------------------*/
-        /*------------------------------------------------------------------------------------------------------------------*/
-        /*------------------------------------------------------------------------------------------------------------------*/
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        //#define NIV_PERS 20
-        
-        
-        /* Class objects */
-        
-        Species *S=NULL;
-        Tree *T=NULL;
-        
-        
-        
-        //int *distr;
-        
-        
-        
-        
-        
-        
-        /*############################################
-         ############################################
-         ############     MAIN PROGRAM    ###########
-         ############################################
-         ############################################*/
-        
-        
-        
-        int main(int argc,char *argv[]) {
-            
-            
-            /***********************/
-            /*** Initializations ***/
-            /***********************/
-            
-            
 #ifdef MPI                                                  /* Lookup processor number / total number of processors */
-            MPI_Init(&argc,&argv);
-            MPI_Comm_rank(MPI_COMM_WORLD,&p_rank);
-            MPI_Comm_size(MPI_COMM_WORLD,&size);
+    MPI_Init(&argc,&argv);
+    MPI_Comm_rank(MPI_COMM_WORLD,&p_rank);
+    MPI_Comm_size(MPI_COMM_WORLD,&size);
 #else
-            p_rank = 0;
-            size = 1;
+    p_rank = 0;
+    size = 1;
 #endif
-            int t=(int) time(NULL);
-            sgenrand2i(t+2*p_rank+1);
-            sgenrand2(t+2*p_rank+1);
-            
-            for(int argn=1;argn<argc;argn++){                    /* Arguments of the input and output files */
-                
-                if(*argv[argn] == '-'){
-                    switch(*(argv[argn]+1)){
-                        case 'i':
-                            bufi = argv[argn]+2;
-                            break;
-                        case 'o':
-                            buf = argv[argn]+2;
-                            break;
-                    }
-                }
+    int t=(int) time(NULL);
+    sgenrand2i(t+2*p_rank+1);
+    sgenrand2(t+2*p_rank+1);
+    
+    for(int argn=1;argn<argc;argn++){                    /* Arguments of the input and output files */
+        
+        if(*argv[argn] == '-'){
+            switch(*(argv[argn]+1)){
+                case 'i':
+                    bufi = argv[argn]+2;
+                    break;
+                case 'o':
+                    buf = argv[argn]+2;
+                    break;
             }
-            
-            sprintf(nomfi,"%s",bufi);                           //change Jan 2016: in this version of the code, the code user is expected to use the input txt file name with its extension name, as eg. "input.txt", when setting the program's argument
-            //sprintf(nomfi,"%s.txt",bufi);
-            sprintf(nomf0,"%s_par.txt",buf);                    /* Files with general output info */
-            out.open(nomf0, ios::out);
-            if (!out) {
-                cout<< "ERROR with par file"<< endl;
-            }
-            
-            sprintf(nomf0,"%s_info.txt",buf);
-            out2.open(nomf0, ios::out);
-            if (!out2) {
-                cout<< "ERROR with info file"<< endl;
-            }
-            
-            Initialise();                                       /* Read global parameters */
-            
-            AllocMem();                                         /* Memory allocation */
-            
-            BirthInit();                                        /* Initial configuration of the forest */
-            
-            
-            facteur = 0.0;                                      /* global parameter of non vertical light */
-            
-            out.close();
-            
-            
-            
-            /***********************/
-            /*** Evolution loop  ***/
-            /***********************/
-            
-            
-            double start_time,stop_time,duration=0.0;           /* for simulation duration */
-            stop_time = clock();
-            for(iter=0;iter<nbiter;iter++) {
-                start_time = stop_time;
-                
-                /* set the iteration environment */             // rk, the current structure of code suppose that environment is periodic (a period = a year), if one want to make climate vary, with interannual variation and climate change along the simulation, one just need to provide the full climate input of the whole simulation (ie number of columns=iter and not iterperyear) and change iterperyear by nbiter here.
-                temp=Temperature[iter%iterperyear];
-                precip=Rainfall[iter%iterperyear];
-                WS=WindSpeed[iter%iterperyear];
-                Wmax=MaxIrradiance[iter%iterperyear]*1.678;       // 1.678 is to convert irradiance from W/m2 to micromol of PAR /s /m2, the unit used in the FvCB model of photosynthesis
-                Wmean=MeanIrradiance[iter%iterperyear];            // still in W/m2
-                e_s=SaturatedVapourPressure[iter%iterperyear];
-                e_a=VapourPressure[iter%iterperyear];
-                
-                Evolution();
-                stop_time = clock();
-                duration +=flor(stop_time-start_time);
-                
-                
+        }
+    }
+    
+    sprintf(nomfi,"%s",bufi);                           //change Jan 2016: in this version of the code, the code user is expected to use the input txt file name with its extension name, as eg. "input.txt", when setting the program's argument
+    //sprintf(nomfi,"%s.txt",bufi);
+    sprintf(nomf0,"%s_par.txt",buf);                    /* Files with general output info */
+    out.open(nomf0, ios::out);
+    if (!out) {
+        cout<< "ERROR with par file"<< endl;
+    }
+    
+    sprintf(nomf0,"%s_info.txt",buf);
+    out2.open(nomf0, ios::out);
+    if (!out2) {
+        cout<< "ERROR with info file"<< endl;
+    }
+    
+    Initialise();                                       /* Read global parameters */
+    
+    AllocMem();                                         /* Memory allocation */
+    
+    BirthInit();                                        /* Initial configuration of the forest */
+    
+    
+    facteur = 0.0;                                      /* global parameter of non vertical light */
+    
+    out.close();
+    
+    /***********************/
+    /*** Evolution loop  ***/
+    /***********************/
+    
+    double start_time,stop_time,duration=0.0;           /* for simulation duration */
+    stop_time = clock();
+    for(iter=0;iter<nbiter;iter++) {
+        start_time = stop_time;
+        
+        /* set the iteration environment */             // rk, the current structure of code suppose that environment is periodic (a period = a year), if one want to make climate vary, with interannual variation and climate change along the simulation, one just need to provide the full climate input of the whole simulation (ie number of columns=iter and not iterperyear) and change iterperyear by nbiter here.
+        temp=Temperature[iter%iterperyear];
+        precip=Rainfall[iter%iterperyear];
+        WS=WindSpeed[iter%iterperyear];
+        Wmax=MaxIrradiance[iter%iterperyear]*1.678;       // 1.678 is to convert irradiance from W/m2 to micromol of PAR /s /m2, the unit used in the FvCB model of photosynthesis
+        Wmean=MeanIrradiance[iter%iterperyear];            // still in W/m2
+        e_s=SaturatedVapourPressure[iter%iterperyear];
+        e_a=VapourPressure[iter%iterperyear];
+        
+        Evolution();
+        stop_time = clock();
+        duration +=flor(stop_time-start_time);
+
 #ifdef FULLOUTPUTS
-                /* output of the state of the simulated forest every 48 timesteps - ie every four years (48 months), created for the aanimated regeneration movie */
-                if (iter%48==0) {
-                    
-                    for(int row=0;row<rows;row++)
-                        for(int col=0;col<cols;col++){
-                            if (T[col + cols*row].t_age >0) {
-                                
-                                sor[17+iter/48] << col << "\t" << row <<  "\t" << T[col + cols*row].t_dbh << "\t" << T[col + cols*row].t_Tree_Height << "\t" << T[col + cols*row].t_Crown_Radius << "\t" << T[col + cols*row].t_Crown_Depth << "\t" << T[col + cols*row].t_sp_lab << endl;
-                            }
-                            
-                        }
-                    
-                }
-                
-#endif
-                
-            }
-            
-            
-            /****** Final pattern ******/
-            /****** 14_04_04 ******/
+        /* output of the state of the simulated forest every 48 timesteps - ie every four years (48 months), created for the aanimated regeneration movie */
+        if (iter%48==0) {
             
             for(int row=0;row<rows;row++)
                 for(int col=0;col<cols;col++){
-                    
-                    sor[10] << col << "\t" << row << "\t" << T[col + cols*row].t_age << "\t" << T[col + cols*row].t_dbh << "\t" << T[col + cols*row].t_Tree_Height << "\t" << T[col + cols*row].t_Crown_Radius << "\t" << T[col + cols*row].t_Crown_Depth << "\t" << T[col + cols*row].t_sp_lab << endl;
-                    
+                    if (T[col + cols*row].t_age >0) {
+                        
+                        sor[17+iter/48] << col << "\t" << row <<  "\t" << T[col + cols*row].t_dbh << "\t" << T[col + cols*row].t_Tree_Height << "\t" << T[col + cols*row].t_Crown_Radius << "\t" << T[col + cols*row].t_Crown_Depth << "\t" << T[col + cols*row].t_sp_lab << endl;
+                    }
                 }
-            
-            
-            for(int sp=1;sp<=numesp;sp++) {
-                sor[15] << S[sp].s_name << "\t" << S[sp].s_Nmass << "\t" << S[sp].s_Pmass << "\t" << S[sp].s_LMA << "\t" << S[sp].s_Vcmax << "\t" << S[sp].s_Jmax << "\t" << S[sp].s_Rdark << "\t" << S[sp].s_LCP << "\n";
-            }
-            
-            /*************************/
-            /*** End of simulation ***/
-            /*************************/
-            
-            
-            
-            float durf = duration/double(CLOCKS_PER_SEC);        /* output of the effective CPU time */
-#ifdef MPI
-            MPI_Reduce(&durf,&durf,1,MPI_FLOAT,MPI_SUM,0,MPI_COMM_WORLD);
-#endif
-            if(!p_rank) {
-                cout << "\n";
-#ifdef MPI
-                out2 << "Number of processors : "<< size << "\n";
-#endif
-                out2 << "Average computation time : "<< durf/float(size) << " seconds.\n";
-                out2 << "End of simulation.\n";
-                cout << "\nNumber of processors : "<< size << "\n";
-                cout << "Average computation time : "<< durf/float(size) << " seconds.\n";
-                cout << "End of simulation.\n";
-            }
-            
-            out2.close();
-            
-            /*Free dynamic memory */ /* added in oct2013 */
-            
-            FreeMem();
-            
-            exit(1);
-            
         }
-        
-        
-        
-        
-        
-        
-        
-        /*############################################
-         ############################################
-         #######  Initialization routines    ########
-         ############################################
-         ############################################*/
-        
-        
-        
-        
-        void Initialise() {
+#endif
+    }
+    
+    
+    /****** Final pattern ******/
+    /****** 14_04_04 ******/
+    
+    for(int row=0;row<rows;row++)
+        for(int col=0;col<cols;col++){
             
-            int ligne;
-            
-            fstream In(nomfi, ios::in);
-            
-            /*** Initialization of the simulation parametres ***/
-            /***************************************************/
-            
-            if (In) {
-                for(ligne=0;ligne<4;ligne++) In.getline(buffer,128,'\n');
-                
-                /*General parameters */
-                In >> cols; In.getline(buffer,128,'\n');
-                In >> rows; In.getline(buffer,128,'\n');
-                sites = rows*cols;
-                In >> nbiter; In.getline(buffer,128,'\n');
-                In >> iterperyear; In.getline(buffer,128,'\n');
-                timestep=1/float(iterperyear);
-                In >> NV; In.getline(buffer,128,'\n');
-                In >> NH; In.getline(buffer,128,'\n');
-                LV = 1.0/NV;
-                LH = 1.0/NH;
-                In >> nbout; In.getline(buffer,128,'\n');
-                if(nbout) freqout = nbiter/nbout;
-                In >> numesp; In.getline(buffer,128,'\n');
-                In >> p; In.getline(buffer,128,'\n');
-                for (int i=0; i<=23; i++) In >> daily_light[i];
-                In.getline(buffer,128,'\n');
-                In.getline(buffer,128,'\n');
-                
-                /*Characters shared by species */
-                In >> klight; In.getline(buffer,128,'\n');
-                In >> phi; In.getline(buffer,128,'\n');
-                In >> vC; In.getline(buffer,128,'\n');
-                In >> DBH0; In.getline(buffer,128,'\n');
-                In >> H0; In.getline(buffer,128,'\n');
-                In >> ra0; In.getline(buffer,128,'\n');
-                In >> ra1; In.getline(buffer,128,'\n');
-                In >> de0; In.getline(buffer,128,'\n');
-                In >> de1; In.getline(buffer,128,'\n');
-                In >> dens; In.getline(buffer,128,'\n'); //new 240311
-                In >> fractionimmigrants; In.getline(buffer,128,'\n');
-                In >> nbs0; In.getline(buffer,128,'\n');
-                In >> m; In.getline(buffer,128,'\n');
-                In >> Cair; In.getline(buffer,128,'\n');
-                
-                DBH0 *= NH;
-                H0 *= NV;
-                ra0 *= NH;
-                de0 *= NV;
+            sor[10] << col << "\t" << row << "\t" << T[col + cols*row].t_age << "\t" << T[col + cols*row].t_dbh << "\t" << T[col + cols*row].t_Tree_Height << "\t" << T[col + cols*row].t_Crown_Radius << "\t" << T[col + cols*row].t_Crown_Depth << "\t" << T[col + cols*row].t_sp_lab << endl;
+        }
+    
+    
+    for(int sp=1;sp<=numesp;sp++) {
+        sor[15] << S[sp].s_name << "\t" << S[sp].s_Nmass << "\t" << S[sp].s_Pmass << "\t" << S[sp].s_LMA << "\t" << S[sp].s_Vcmax << "\t" << S[sp].s_Jmax << "\t" << S[sp].s_Rdark << "\t" << S[sp].s_LCP << "\n";
+    }
+    
+    /*************************/
+    /*** End of simulation ***/
+    /*************************/
+    
+    
+    float durf = duration/double(CLOCKS_PER_SEC);        /* output of the effective CPU time */
+#ifdef MPI
+    MPI_Reduce(&durf,&durf,1,MPI_FLOAT,MPI_SUM,0,MPI_COMM_WORLD);
+#endif
+    if(!p_rank) {
+        cout << "\n";
+#ifdef MPI
+        out2 << "Number of processors : "<< size << "\n";
+#endif
+        out2 << "Average computation time : "<< durf/float(size) << " seconds.\n";
+        out2 << "End of simulation.\n";
+        cout << "\nNumber of processors : "<< size << "\n";
+        cout << "Average computation time : "<< durf/float(size) << " seconds.\n";
+        cout << "End of simulation.\n";
+    }
+    
+    out2.close();
+    
+    /*Free dynamic memory */ /* added in oct2013 */
+    
+    FreeMem();
+    
+    exit(1);
+    
+}
+
+
+/*############################################
+ ############################################
+ #######  Initialization routines    ########
+ ############################################
+ ############################################*/
+
+void Initialise() {
+    
+    int ligne;
+    
+    fstream In(nomfi, ios::in);
+    
+    /*** Initialization of the simulation parametres ***/
+    /***************************************************/
+    
+    if (In) {
+        for(ligne=0;ligne<4;ligne++) In.getline(buffer,128,'\n');
+        
+        /*General parameters */
+        In >> cols; In.getline(buffer,128,'\n');
+        In >> rows; In.getline(buffer,128,'\n');
+        sites = rows*cols;
+        In >> nbiter; In.getline(buffer,128,'\n');
+        In >> iterperyear; In.getline(buffer,128,'\n');
+        timestep=1/float(iterperyear);
+        In >> NV; In.getline(buffer,128,'\n');
+        In >> NH; In.getline(buffer,128,'\n');
+        LV = 1.0/NV;
+        LH = 1.0/NH;
+        In >> nbout; In.getline(buffer,128,'\n');
+        if(nbout) freqout = nbiter/nbout;
+        In >> numesp; In.getline(buffer,128,'\n');
+        In >> p; In.getline(buffer,128,'\n');
+        for (int i=0; i<=23; i++) In >> daily_light[i];
+        In.getline(buffer,128,'\n');
+        In.getline(buffer,128,'\n');
+        
+        /*Characters shared by species */
+        In >> klight; In.getline(buffer,128,'\n');
+        In >> phi; In.getline(buffer,128,'\n');
+        In >> vC; In.getline(buffer,128,'\n');
+        In >> DBH0; In.getline(buffer,128,'\n');
+        In >> H0; In.getline(buffer,128,'\n');
+        In >> ra0; In.getline(buffer,128,'\n');
+        In >> ra1; In.getline(buffer,128,'\n');
+        In >> de0; In.getline(buffer,128,'\n');
+        In >> de1; In.getline(buffer,128,'\n');
+        In >> dens; In.getline(buffer,128,'\n'); //new 240311
+        In >> fractionimmigrants; In.getline(buffer,128,'\n');
+        In >> nbs0; In.getline(buffer,128,'\n');
+        In >> m; In.getline(buffer,128,'\n');
+        In >> Cair; In.getline(buffer,128,'\n');
+        
+        DBH0 *= NH;
+        H0 *= NV;
+        ra0 *= NH;
+        de0 *= NV;
 #ifdef DAILYLIGHT
-                for (int i=0; i<=23; i++) cout<< "Daily light" << i << "\t"  << daily_light[i] << endl;
+        for (int i=0; i<=23; i++) cout<< "Daily light" << i << "\t"  << daily_light[i] << endl;
 #endif
-            }
-            
-            else {
-                cout<< "ERROR with the input file of parameters" << endl;
-            }
-            
-            
-            /*** Information in file info ***/
-            /***********************************/
-            
-            if(!p_rank){
-                out2 << "\nTROLL simulator\n\n";
-                out2 << "\n   2D discrete network: horizontal step = " << LH
-                << " m, one tree per "<< LH*LH << " m^2 \n\n";
-                out2 << "\n   Tree : (t_dbh,t_Tree_Height,t_Crown_Radius,t_Crown_Depth) \n\n";
-                out2 << "\n            + one species label \n\n";
-                out2 << " Number of sites      : "<<rows<<"x"<<cols<<"\n";
-                out2 << " Number of iterations : "<<nbiter<<"\n";
-                out2 << " Duration of timestep : "<<timestep<<" years\n";
-                out2 << " Number of Species    : "<<numesp << "\n\n";
-                out2.flush();
-            }
-            
-            
-            /*** Initialization of trees ***/
-            /*******************************/
-            
-            if(NULL==(T=new Tree[sites])) {
-                cerr<<"!!! Mem_Alloc\n";
-                cout<<"!!! Mem_Alloc Tree" << endl;
-            }
-            
-            for(int site=0;site<sites;site++) {
-                if (NULL==(T[site].t_NDDfield = new float[numesp+1])) cerr<<"!!! Mem_Alloc\n";
-                for(int ii=0;ii<(numesp+1);ii++) T[site].t_NDDfield[ii]=0;
-            }
-            
-            
-            /*** Initialization of species ***/
-            /*********************************/
-            
-            int sp;
-            if(NULL==(S=new Species[numesp+1])) {
-                cerr<<"!!! Mem_Alloc\n";
-                cout<<"!!! Mem_Alloc Species" << endl;
-            }
-            
-            for(ligne=0;ligne<3;ligne++) In.getline(buffer,128,'\n');                           /* Read species parameters (ifstream In) */
-            for(sp=1;sp<=numesp;sp++) {
-                S[sp].Init(sp,In);
-            }
-            
-            
-            /*** Initialization of environmental variables ***/
-            /*************************************************/
-            
-            In.getline(buffer,128,'\n');
-            In.getline(buffer,128,'\n');
-            In.getline(buffer,128,'\n');
-            
-            if(NULL==(Temperature=new float[iterperyear])) {                                // rk, the current structure of code suppose that environment is periodic (a period = a year), if one want to make climate vary, with interannual variation and climate change along the simulation, one just need to provide the full climate input of the whole simulation (ie number of columns=iter and not iterperyear) and change iterperyear by nbiter here.
-                cerr<<"!!! Mem_Alloc\n";
-                cout<<"!!! Mem_Alloc Temperature" << endl;
-            }
-            
-            for (int i=0; i<iterperyear; i++) In >> Temperature[i];
-            In.getline(buffer,128,'\n');
-            
-            for (int i=0; i<iterperyear; i++) cout<< "Temperature" << i << "\t"  << Temperature[i] <<  "\t";
-            cout<<endl;
-            
-            if(NULL==(Rainfall=new float[iterperyear])) {
-                cerr<<"!!! Mem_Alloc\n";
-                cout<<"!!! Mem_Alloc Rainfall" << endl;
-            }
-            for (int i=0; i<iterperyear; i++) In >> Rainfall[i];
-            In.getline(buffer,128,'\n');
-            
-            for (int i=0; i<iterperyear; i++) cout<< "Rainfall" << i << "\t"  << Rainfall[i] << "\t";
-            cout<<endl;
-            
-            if(NULL==(WindSpeed=new float[iterperyear])) {
-                cerr<<"!!! Mem_Alloc\n";
-                cout<<"!!! Mem_Alloc WindSpeed" << endl;
-            }
-            for (int i=0; i<iterperyear; i++) In >> WindSpeed[i];
-            In.getline(buffer,128,'\n');
-            
-            for (int i=0; i<iterperyear; i++) cout<< "WindSpeed" << i << "\t"  << WindSpeed[i] << "\t";
-            cout<<endl;
-            
-            if(NULL==(MaxIrradiance=new float[iterperyear])) {
-                cerr<<"!!! Mem_Alloc\n";
-                cout<<"!!! Mem_Alloc Irradiance" << endl;
-            }
-            for (int i=0; i<iterperyear; i++) In >> MaxIrradiance[i];
-            In.getline(buffer,128,'\n');
-            
-            for (int i=0; i<iterperyear; i++) cout<< "MaxIrradiance" << i << "\t"  << MaxIrradiance[i] << "\t";
-            cout<<endl;
-            
-            if(NULL==(MeanIrradiance=new float[iterperyear])) {
-                cerr<<"!!! Mem_Alloc\n";
-                cout<<"!!! Mem_Alloc Irradiance" << endl;
-            }
-            for (int i=0; i<iterperyear; i++) In >> MeanIrradiance[i];
-            In.getline(buffer,128,'\n');
-            
-            for (int i=0; i<iterperyear; i++) cout<< "MeanIrradiance" << i << "\t"  << MeanIrradiance[i] << "\t";
-            cout<<endl;
-            
-            if(NULL==(SaturatedVapourPressure=new float[iterperyear])) {
-                cerr<<"!!! Mem_Alloc\n";
-                cout<<"!!! Mem_Alloc SaturatedVapourPressure" << endl;
-            }
-            for (int i=0; i<iterperyear; i++) In >> SaturatedVapourPressure[i];
-            In.getline(buffer,128,'\n');
-            
-            for (int i=0; i<iterperyear; i++) cout<< "SaturatedVapourPressure" << i << "\t"  << SaturatedVapourPressure[i] << "\t";
-            cout<<endl;
-            
-            if(NULL==(VapourPressure=new float[iterperyear])) {
-                cerr<<"!!! Mem_Alloc\n";
-                cout<<"!!! Mem_Alloc VapourPressure" << endl;
-            }
-            for (int i=0; i<iterperyear; i++) In >> VapourPressure[i];
-            In.getline(buffer,128,'\n');
-            
-            for (int i=0; i<iterperyear; i++) cout<< "VapourPressure" << i << "\t"  << VapourPressure[i] << "\t";
-            cout<<endl;
-            
-            
-            temp=Temperature[iter%iterperyear];
-            precip=Rainfall[iter%iterperyear];
-            WS=WindSpeed[iter%iterperyear];
-            Wmax=MaxIrradiance[iter%iterperyear]*1.678;       // 1.678 is to convert irradiance from W/m2 to micromol of PAR /s /m2, the unit used in the FvCB model of photosynthesis
-            Wmean=MeanIrradiance[iter%iterperyear];            // still in W/m2
-            e_s=SaturatedVapourPressure[iter%iterperyear];
-            e_a=VapourPressure[iter%iterperyear];
-            
-            
-            
-            In.close();                                                                         /* Close ifstream In */
-            
-            In.open(nomfi, ios::in);
-            if(!p_rank) {
-                do{
-                    In.getline(buffer,256,'\n');
-                    out << buffer <<endl;
-                }while (!In.eof()) ;
-            }
-            
-            In.close();                                                                         /* Close ifstream In */
-            
-            
-            
-            /*** Initialization of output streams ***/
-            /****************************************/
-            
-            char nnn[100];
-            if(!p_rank) {
-                sprintf(nnn,"%s_abund.txt",buf);
-                sor[0].open(nnn, ios::out);
-                if (!sor[0]) {
-                    cout<< "ERROR with abund file"<< endl;
-                }
-                sprintf(nnn,"%s_abu10.txt",buf);
-                sor[1].open(nnn, ios::out);
-                sprintf(nnn,"%s_abu30.txt",buf);
-                sor[2].open(nnn, ios::out);
-                sprintf(nnn,"%s_ba.txt",buf);
-                sor[3].open(nnn, ios::out);
-                sprintf(nnn,"%s_npp.txt",buf);
-                sor[4].open(nnn, ios::out);
-                sprintf(nnn,"%s_gpp.txt",buf);
-                sor[5].open(nnn, ios::out);
-                sprintf(nnn,"%s_ba10.txt",buf);
-                sor[6].open(nnn, ios::out);
-                sprintf(nnn,"%s_ppfd0.txt",buf);
-                sor[7].open(nnn, ios::out);
-                sprintf(nnn,"%s_death.txt",buf);
-                sor[8].open(nnn, ios::out);
-                sprintf(nnn,"%s_state.txt",buf);
-                sor[9].open(nnn, ios::out);
-                sprintf(nnn,"%s_final_pattern.txt",buf);
-                sor[10].open(nnn, ios::out);
-                sprintf(nnn,"%s_ddbh1.txt",buf);                // used to be added to explore potential link with Belassen curve, could be suppressed, but maybe useful t have an idea of the magnitude and distribution of increment of dbh
-                sor[11].open(nnn, ios::out);
-                sprintf(nnn,"%s_ddbh2.txt",buf);
-                sor[12].open(nnn, ios::out);
-                sprintf(nnn,"%s_ddbh3.txt",buf);
-                sor[13].open(nnn, ios::out);
-                sprintf(nnn,"%s_cica.txt",buf);
-                sor[14].open(nnn, ios::out);
-                sprintf(nnn,"%s_sp_par.txt",buf);
-                sor[15].open(nnn, ios::out);
-                sprintf(nnn,"%s_agb.txt",buf);
-                sor[16].open(nnn, ios::out);
+    }
+    
+    else {
+        cout<< "ERROR with the input file of parameters" << endl;
+    }
+    
+    
+    /*** Information in file info ***/
+    /***********************************/
+    
+    if(!p_rank){
+        out2 << "\nTROLL simulator\n\n";
+        out2 << "\n   2D discrete network: horizontal step = " << LH
+        << " m, one tree per "<< LH*LH << " m^2 \n\n";
+        out2 << "\n   Tree : (t_dbh,t_Tree_Height,t_Crown_Radius,t_Crown_Depth) \n\n";
+        out2 << "\n            + one species label \n\n";
+        out2 << " Number of sites      : "<<rows<<"x"<<cols<<"\n";
+        out2 << " Number of iterations : "<<nbiter<<"\n";
+        out2 << " Duration of timestep : "<<timestep<<" years\n";
+        out2 << " Number of Species    : "<<numesp << "\n\n";
+        out2.flush();
+    }
+    
+    
+    /*** Initialization of trees ***/
+    /*******************************/
+    
+    if(NULL==(T=new Tree[sites])) {
+        cerr<<"!!! Mem_Alloc\n";
+        cout<<"!!! Mem_Alloc Tree" << endl;
+    }
+    
+    for(int site=0;site<sites;site++) {
+        if (NULL==(T[site].t_NDDfield = new float[numesp+1])) cerr<<"!!! Mem_Alloc\n";
+        for(int ii=0;ii<(numesp+1);ii++) T[site].t_NDDfield[ii]=0;
+    }
+    
+    
+    /*** Initialization of species ***/
+    /*********************************/
+    
+    int sp;
+    if(NULL==(S=new Species[numesp+1])) {
+        cerr<<"!!! Mem_Alloc\n";
+        cout<<"!!! Mem_Alloc Species" << endl;
+    }
+    
+    for(ligne=0;ligne<3;ligne++) In.getline(buffer,128,'\n');                           /* Read species parameters (ifstream In) */
+    for(sp=1;sp<=numesp;sp++) {
+        S[sp].Init(sp,In);
+    }
+    
+    
+    /*** Initialization of environmental variables ***/
+    /*************************************************/
+    
+    In.getline(buffer,128,'\n');
+    In.getline(buffer,128,'\n');
+    In.getline(buffer,128,'\n');
+    
+    if(NULL==(Temperature=new float[iterperyear])) {                                // rk, the current structure of code suppose that environment is periodic (a period = a year), if one want to make climate vary, with interannual variation and climate change along the simulation, one just need to provide the full climate input of the whole simulation (ie number of columns=iter and not iterperyear) and change iterperyear by nbiter here.
+        cerr<<"!!! Mem_Alloc\n";
+        cout<<"!!! Mem_Alloc Temperature" << endl;
+    }
+    
+    for (int i=0; i<iterperyear; i++) In >> Temperature[i];
+    In.getline(buffer,128,'\n');
+    
+    for (int i=0; i<iterperyear; i++) cout<< "Temperature" << i << "\t"  << Temperature[i] <<  "\t";
+    cout<<endl;
+    
+    if(NULL==(Rainfall=new float[iterperyear])) {
+        cerr<<"!!! Mem_Alloc\n";
+        cout<<"!!! Mem_Alloc Rainfall" << endl;
+    }
+    for (int i=0; i<iterperyear; i++) In >> Rainfall[i];
+    In.getline(buffer,128,'\n');
+    
+    for (int i=0; i<iterperyear; i++) cout<< "Rainfall" << i << "\t"  << Rainfall[i] << "\t";
+    cout<<endl;
+    
+    if(NULL==(WindSpeed=new float[iterperyear])) {
+        cerr<<"!!! Mem_Alloc\n";
+        cout<<"!!! Mem_Alloc WindSpeed" << endl;
+    }
+    for (int i=0; i<iterperyear; i++) In >> WindSpeed[i];
+    In.getline(buffer,128,'\n');
+    
+    for (int i=0; i<iterperyear; i++) cout<< "WindSpeed" << i << "\t"  << WindSpeed[i] << "\t";
+    cout<<endl;
+    
+    if(NULL==(MaxIrradiance=new float[iterperyear])) {
+        cerr<<"!!! Mem_Alloc\n";
+        cout<<"!!! Mem_Alloc Irradiance" << endl;
+    }
+    for (int i=0; i<iterperyear; i++) In >> MaxIrradiance[i];
+    In.getline(buffer,128,'\n');
+    
+    for (int i=0; i<iterperyear; i++) cout<< "MaxIrradiance" << i << "\t"  << MaxIrradiance[i] << "\t";
+    cout<<endl;
+    
+    if(NULL==(MeanIrradiance=new float[iterperyear])) {
+        cerr<<"!!! Mem_Alloc\n";
+        cout<<"!!! Mem_Alloc Irradiance" << endl;
+    }
+    for (int i=0; i<iterperyear; i++) In >> MeanIrradiance[i];
+    In.getline(buffer,128,'\n');
+    
+    for (int i=0; i<iterperyear; i++) cout<< "MeanIrradiance" << i << "\t"  << MeanIrradiance[i] << "\t";
+    cout<<endl;
+    
+    if(NULL==(SaturatedVapourPressure=new float[iterperyear])) {
+        cerr<<"!!! Mem_Alloc\n";
+        cout<<"!!! Mem_Alloc SaturatedVapourPressure" << endl;
+    }
+    for (int i=0; i<iterperyear; i++) In >> SaturatedVapourPressure[i];
+    In.getline(buffer,128,'\n');
+    
+    for (int i=0; i<iterperyear; i++) cout<< "SaturatedVapourPressure" << i << "\t"  << SaturatedVapourPressure[i] << "\t";
+    cout<<endl;
+    
+    if(NULL==(VapourPressure=new float[iterperyear])) {
+        cerr<<"!!! Mem_Alloc\n";
+        cout<<"!!! Mem_Alloc VapourPressure" << endl;
+    }
+    for (int i=0; i<iterperyear; i++) In >> VapourPressure[i];
+    In.getline(buffer,128,'\n');
+    
+    for (int i=0; i<iterperyear; i++) cout<< "VapourPressure" << i << "\t"  << VapourPressure[i] << "\t";
+    cout<<endl;
+    
+    
+    temp=Temperature[iter%iterperyear];
+    precip=Rainfall[iter%iterperyear];
+    WS=WindSpeed[iter%iterperyear];
+    Wmax=MaxIrradiance[iter%iterperyear]*1.678;       // 1.678 is to convert irradiance from W/m2 to micromol of PAR /s /m2, the unit used in the FvCB model of photosynthesis
+    Wmean=MeanIrradiance[iter%iterperyear];            // still in W/m2
+    e_s=SaturatedVapourPressure[iter%iterperyear];
+    e_a=VapourPressure[iter%iterperyear];
+    
+
+    In.close();                              /* Close ifstream In */
+    
+    In.open(nomfi, ios::in);
+    if(!p_rank) {
+        do{
+            In.getline(buffer,256,'\n');
+            out << buffer <<endl;
+        }while (!In.eof()) ;
+    }
+    
+    In.close();                              /* Close ifstream In */
+    
+    
+    /*** Initialization of output streams ***/
+    /****************************************/
+    
+    char nnn[100];
+    if(!p_rank) {
+        sprintf(nnn,"%s_abund.txt",buf);
+        sor[0].open(nnn, ios::out);
+        if (!sor[0]) {
+            cout<< "ERROR with abund file"<< endl;
+        }
+        sprintf(nnn,"%s_abu10.txt",buf);
+        sor[1].open(nnn, ios::out);
+        sprintf(nnn,"%s_abu30.txt",buf);
+        sor[2].open(nnn, ios::out);
+        sprintf(nnn,"%s_ba.txt",buf);
+        sor[3].open(nnn, ios::out);
+        sprintf(nnn,"%s_npp.txt",buf);
+        sor[4].open(nnn, ios::out);
+        sprintf(nnn,"%s_gpp.txt",buf);
+        sor[5].open(nnn, ios::out);
+        sprintf(nnn,"%s_ba10.txt",buf);
+        sor[6].open(nnn, ios::out);
+        sprintf(nnn,"%s_ppfd0.txt",buf);
+        sor[7].open(nnn, ios::out);
+        sprintf(nnn,"%s_death.txt",buf);
+        sor[8].open(nnn, ios::out);
+        sprintf(nnn,"%s_state.txt",buf);
+        sor[9].open(nnn, ios::out);
+        sprintf(nnn,"%s_final_pattern.txt",buf);
+        sor[10].open(nnn, ios::out);
+        sprintf(nnn,"%s_ddbh1.txt",buf);                // used to be added to explore potential link with Belassen curve, could be suppressed, but maybe useful t have an idea of the magnitude and distribution of increment of dbh
+        sor[11].open(nnn, ios::out);
+        sprintf(nnn,"%s_ddbh2.txt",buf);
+        sor[12].open(nnn, ios::out);
+        sprintf(nnn,"%s_ddbh3.txt",buf);
+        sor[13].open(nnn, ios::out);
+        sprintf(nnn,"%s_cica.txt",buf);
+        sor[14].open(nnn, ios::out);
+        sprintf(nnn,"%s_sp_par.txt",buf);
+        sor[15].open(nnn, ios::out);
+        sprintf(nnn,"%s_agb.txt",buf);
+        sor[16].open(nnn, ios::out);
 #ifdef FULLOUTPUTS
-                for (int i=17; i<142; i++) {
-                    int j=i-16;
-                    sprintf(nnn,"%s_plot_%d.txt",buf, j);
-                    sor[i].open(nnn, ios::out);
-                }
-#endif
-                sprintf(nnn,"%s_NDDfield.txt",buf);
-                sor[142].open(nnn, ios::out);
-                sprintf(nnn,"%s_dbh.txt",buf);
-                sch[1].open(nnn,ios::out);
-                sprintf(nnn,"%s_vertd.txt",buf);
-                sch[2].open(nnn,ios::out);
-                
-            }
-            
-            
+        for (int i=17; i<142; i++) {
+            int j=i-16;
+            sprintf(nnn,"%s_plot_%d.txt",buf, j);
+            sor[i].open(nnn, ios::out);
         }
-        
-        
-        
-        
-        /***************************************
-         *** Field dynamic memory allocation ***
-         ***************************************/
-        
-        
-        void AllocMem() {
-            
-            int spp,haut,i;
-            
-            /*HEIGHT = 0;                                                                                Maximal geometric constants
-             for(spp=1;spp<=numesp;spp++) {
-             HEIGHT = max(HEIGHT,int(S[spp].s_hmax*S[spp].s_dmax/(S[spp].s_dmax+S[spp].s_ah)));    in number of vertical cells
-             }*/
-            HEIGHT = 80;                                        // try 12/05/2015, in order to enable big trees still to grow
-            
-            float d,r;
-            d = 0.0;
-            r = 0.0;
-            for(spp=1;spp<=numesp;spp++){
-                d = maxf(d,S[spp].s_dmax);                                                            /* in number of horizontal cells */
-                r = maxf(r,ra0+S[spp].s_dmax*ra1);                                                    /* in number of horizontal cells */
-            }
-            
-            RMAX = int(r+p*NH*LV*HEIGHT);
-            //  RMAX = int(r);
-            SBORD = cols*RMAX;
-            dbhmaxincm = int(100.*d);
-            
-            if(!p_rank) {
-                /*cout << "HEIGHT : " << HEIGHT
-                 << " RMAX : " << RMAX << " DBH : " << DBH <<"\n";
-                 cout.flush();*/
-                
-                if(RMAX>rows){                                                                        /* Consistency tests */
-                    cerr << "Erreur : RMAX > rows \n";
-                    exit(-1);
-                }
-                if(HEIGHT > rows){
-                    cerr << "Erreur : HEIGHT > rows \n";
-                    exit(-1);
-                }
-            }
-            
-            
-            /*** Initialization of dynamic Fields ***/
-            /****************************************/
-            
-            if (NULL==(nbdbh=new int[dbhmaxincm])) cerr<<"!!! Mem_Alloc\n";                         /* Field for DBH histogram */
-            if (NULL==(layer=new float[HEIGHT+1])) cerr<<"!!! Mem_Alloc\n";                         /* Field for variables averaged by vertical layer */
-            if (NULL==(tempch=new unsigned short[sites])) cerr<<"!!! Mem_Alloc\n";                  /* Temporary field for the OutputField routine */
-            if (NULL==(tempch2=new int[sites/10000])) cerr<<"!!! Mem_Alloc\n";
-            if (NULL==(ESP_N=new int[numesp+1])) cerr<<"!!! Mem_Alloc\n";                           /* Field for democratic seed germination */
-#ifdef SEEDTRADEOFF
-            if (NULL==(PROB_S=new float[numesp+1])) cerr<<"!!! Mem_Alloc\n";
 #endif
-            //  if (NULL==(persist=new long int[nbiter])) cerr<<"!!! Mem_Alloc\n";                  /* Field for persistence */
-            //  if (NULL==(distr=new int[cols])) cerr<<"!!! Mem_Alloc\n";
-            
-            if (NULL==(LAI3D=new float*[HEIGHT+1]))                                                   /* Field 3D */
-                cerr<<"!!! Mem_Alloc\n";                                                            /* Trees at the border of the simulated forest need to know the canopy occupancy by trees in the neighboring processor.*/
-            for(haut=0;haut<(HEIGHT+1);haut++)                                                          /* For each processor, we define a stripe above (labelled 0) and a stripe below (1). Each stripe is SBORD in width.*/
-                if (NULL==(LAI3D[haut]=new float[sites+2*SBORD]))                                   /* ALL the sites need to be updated.*/
-                    cerr<<"!!! Mem_Alloc\n";
-            for(haut=0;haut<(HEIGHT+1);haut++)
-                for(int site=0;site<sites+2*SBORD;site++)
-                    LAI3D[haut][site] = 0.0;
-            
-            if (NULL==(Thurt[0]=new unsigned short[3*sites]))                                       /* Field for treefall impacts */
-                cerr<<"!!! Mem_Alloc\n";
-            for(i=1;i<3;i++)
-                if (NULL==(Thurt[i]=new unsigned short[sites]))
-                    cerr<<"!!! Mem_Alloc\n";
-            
+        sprintf(nnn,"%s_NDDfield.txt",buf);
+        sor[142].open(nnn, ios::out);
+        sprintf(nnn,"%s_dbh.txt",buf);
+        sch[1].open(nnn,ios::out);
+        sprintf(nnn,"%s_vertd.txt",buf);
+        sch[2].open(nnn,ios::out);
+    }
+}
+
+
+/***************************************
+ *** Field dynamic memory allocation ***
+ ***************************************/
+
+void AllocMem() {
+    
+    int spp,haut,i;
+    
+    /*HEIGHT = 0;                                                                                Maximal geometric constants
+     for(spp=1;spp<=numesp;spp++) {
+     HEIGHT = max(HEIGHT,int(S[spp].s_hmax*S[spp].s_dmax/(S[spp].s_dmax+S[spp].s_ah)));    in number of vertical cells
+     }*/
+    HEIGHT = 80;                                        // try 12/05/2015, in order to enable big trees still to grow
+    
+    float d,r;
+    d = 0.0;
+    r = 0.0;
+    for(spp=1;spp<=numesp;spp++){
+        d = maxf(d,S[spp].s_dmax);                                                            /* in number of horizontal cells */
+        r = maxf(r,ra0+S[spp].s_dmax*ra1);                                                    /* in number of horizontal cells */
+    }
+    
+    RMAX = int(r+p*NH*LV*HEIGHT);
+    //  RMAX = int(r);
+    SBORD = cols*RMAX;
+    dbhmaxincm = int(100.*d);
+    
+    if(!p_rank) {
+        /*cout << "HEIGHT : " << HEIGHT
+         << " RMAX : " << RMAX << " DBH : " << DBH <<"\n";
+         cout.flush();*/
+        
+        if(RMAX>rows){                                                                        /* Consistency tests */
+            cerr << "Erreur : RMAX > rows \n";
+            exit(-1);
+        }
+        if(HEIGHT > rows){
+            cerr << "Erreur : HEIGHT > rows \n";
+            exit(-1);
+        }
+    }
+    
+    
+    /*** Initialization of dynamic Fields ***/
+    /****************************************/
+    
+    if (NULL==(nbdbh=new int[dbhmaxincm])) cerr<<"!!! Mem_Alloc\n";                         /* Field for DBH histogram */
+    if (NULL==(layer=new float[HEIGHT+1])) cerr<<"!!! Mem_Alloc\n";                         /* Field for variables averaged by vertical layer */
+    if (NULL==(tempch=new unsigned short[sites])) cerr<<"!!! Mem_Alloc\n";                  /* Temporary field for the OutputField routine */
+    if (NULL==(tempch2=new int[sites/10000])) cerr<<"!!! Mem_Alloc\n";
+    if (NULL==(ESP_N=new int[numesp+1])) cerr<<"!!! Mem_Alloc\n";                           /* Field for democratic seed germination */
+#ifdef SEEDTRADEOFF
+    if (NULL==(PROB_S=new float[numesp+1])) cerr<<"!!! Mem_Alloc\n";
+#endif
+    //  if (NULL==(persist=new long int[nbiter])) cerr<<"!!! Mem_Alloc\n";                  /* Field for persistence */
+    //  if (NULL==(distr=new int[cols])) cerr<<"!!! Mem_Alloc\n";
+    
+    if (NULL==(LAI3D=new float*[HEIGHT+1]))                                                   /* Field 3D */
+        cerr<<"!!! Mem_Alloc\n";                                                            /* Trees at the border of the simulated forest need to know the canopy occupancy by trees in the neighboring processor.*/
+    for(haut=0;haut<(HEIGHT+1);haut++)                                                          /* For each processor, we define a stripe above (labelled 0) and a stripe below (1). Each stripe is SBORD in width.*/
+        if (NULL==(LAI3D[haut]=new float[sites+2*SBORD]))                                   /* ALL the sites need to be updated.*/
+            cerr<<"!!! Mem_Alloc\n";
+    for(haut=0;haut<(HEIGHT+1);haut++)
+        for(int site=0;site<sites+2*SBORD;site++)
+            LAI3D[haut][site] = 0.0;
+    
+    if (NULL==(Thurt[0]=new unsigned short[3*sites]))                                       /* Field for treefall impacts */
+        cerr<<"!!! Mem_Alloc\n";
+    for(i=1;i<3;i++)
+        if (NULL==(Thurt[i]=new unsigned short[sites]))
+            cerr<<"!!! Mem_Alloc\n";
+    
 #ifdef MPI                                                                                      /* Fields for MPI operations */
-            for(i=0;i<2;i++){                                                                       /*  Two fields: one for the CL north (0) one for the CL south (1) */
-                if (NULL==(LAIc[i]=new unsigned short*[HEIGHT+1]))                                    /* These fields contain the light info in the neighboring procs (2*SBORD in width, not SBORD !). They are used to update local fields */
-                    cerr<<"!!! Mem_Alloc\n";
-                for(haut=0;haut<(HEIGHT+1);haut++)
-                    if (NULL==(LAIc[i][haut]=new unsigned short[2*SBORD]))
-                        cerr<<"!!! Mem_Alloc\n";
-            }
+    for(i=0;i<2;i++){                                                                       /*  Two fields: one for the CL north (0) one for the CL south (1) */
+        if (NULL==(LAIc[i]=new unsigned short*[HEIGHT+1]))                                    /* These fields contain the light info in the neighboring procs (2*SBORD in width, not SBORD !). They are used to update local fields */
+            cerr<<"!!! Mem_Alloc\n";
+        for(haut=0;haut<(HEIGHT+1);haut++)
+            if (NULL==(LAIc[i][haut]=new unsigned short[2*SBORD]))
+                cerr<<"!!! Mem_Alloc\n";
+    }
 #endif
-        }
-        
-        
-        
-        /***************************************
-         **** Initial non-local germination ****
-         ***************************************/
-        
-        
-        
-        void BirthInit() {
-            
-            //int site,temp2;
-            int temp1;
-            
+}
+
+
+/***************************************
+ **** Initial non-local germination ****
+ ***************************************/
+
+void BirthInit() {
+    
+    //int site,temp2;
+    int temp1;
+    
 #if INHOMOGENE
-            if(!p_rank)
+    if(!p_rank)
 #endif
-                
-                nblivetrees=0;
-            
-            cout << "Initial germination" << endl;
-            
-            for(int spp=1;spp<=numesp;spp++) {                              /* Initial condition: intial germination due to external seed rain (of s_nbext seeds for each species) */
-                
-                for(int ii=0;ii<S[spp].s_nbext;ii++){
-                    temp1 = genrand2i()%sites;
-                    if(T[temp1].t_age==0) T[temp1].Birth(S,spp,temp1);
-                }
-                
-                cout << S[spp].s_name << "\t" << S[spp].s_nbind <<  endl;
-                
-            }
-            
-            cout << "\tNBTrees\tinitial\tgermination" << nblivetrees << endl;
-            
-            
-            /* for(int site=0;site<sites;site++)                             Initial condition: seeds (of species 1 or 2 only, randomly) everywhere (loop over all sites)
-             T[site].Birth(S,genrand2i()%2+1,site);
-             
-             for(int spp=1;spp<=numesp;spp++) {
-             cout << S[spp].s_name << "\t" << S[spp].s_nbind << endl;
-             }
-             
-             cout << "\tNBTrees\t" << nblivetrees << endl;
-             
-             */
-            
-            
-            
-            /* for(int row=0;row<rows;row++)                                  Initial condition: two zones (one side filled with species 1, the other with species 2)
-             for(int col=0;col<cols;col++){
-             site = col+cols*row;
-             if(col<cols/2)
-             T[site].Birth(S,1,site);
-             else
-             T[site].Birth(S,2,site);
-             }*/
-            
-            
+        
+        nblivetrees=0;
+    
+    cout << "Initial germination" << endl;
+    
+    for(int spp=1;spp<=numesp;spp++) {                              /* Initial condition: intial germination due to external seed rain (of s_nbext seeds for each species) */
+        
+        for(int ii=0;ii<S[spp].s_nbext;ii++){
+            temp1 = genrand2i()%sites;
+            if(T[temp1].t_age==0) T[temp1].Birth(S,spp,temp1);
+        }
+        
+        cout << S[spp].s_name << "\t" << S[spp].s_nbind <<  endl;
+        
+    }
+    
+    cout << "\tNBTrees\tinitial\tgermination" << nblivetrees << endl;
+    
+    
+    /* for(int site=0;site<sites;site++)                             Initial condition: seeds (of species 1 or 2 only, randomly) everywhere (loop over all sites)
+     T[site].Birth(S,genrand2i()%2+1,site);
+     
+     for(int spp=1;spp<=numesp;spp++) {
+     cout << S[spp].s_name << "\t" << S[spp].s_nbind << endl;
+     }
+     
+     cout << "\tNBTrees\t" << nblivetrees << endl;
+     
+     */
+    
+    /* for(int row=0;row<rows;row++)                                  Initial condition: two zones (one side filled with species 1, the other with species 2)
+     for(int col=0;col<cols;col++){
+     site = col+cols*row;
+     if(col<cols/2)
+     T[site].Birth(S,1,site);
+     else
+     T[site].Birth(S,2,site);
+     }*/
+    
+    
 #ifdef MPI
-            MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 #endif
-            
-            cout<<endl;
-            
-            
-        }
-        
-        
-        
-        
-        
-        
-        
-        /*###############################################
-         ###############################################
-         #######  Evolution at each timestep    ########
-         ###############################################
-         ###############################################*/
-        
-        
-        
-        void Evolution() {
-            
-            /*if((iter==500)||(iter==1000)||(iter==1500)||(iter==2000))
-             facteur += .002;*/
-            
-            
-            UpdateField();                      /* Update light fields and seed banks */
-            UpdateTree();                       /* Update trees */
-            UpdateTreefall();                   /* Compute and distribute Treefall events */
-            Average();                          /* Compute averages for outputs */
-            OutputField();                      /* Output the statistics */
-            
-        }
-        
-        
-        
-        
-        /*##################################
-         ####	Compute field LAI 3D    ####
-         ####	 Compute field Seed     ####
-         ##################################*/
-        
-        
-        void UpdateField() {
-            
-            int site,haut,spp;
-            
-            
-            
-            /***  Compute Field LAI3D  ***/
-            /*****************************/
-            
-            
+    
+    cout<<endl;
+}
+
+
+/*###############################################
+ ###############################################
+ #######  Evolution at each timestep    ########
+ ###############################################
+ ###############################################*/
+
+void Evolution() {
+    
+    /*if((iter==500)||(iter==1000)||(iter==1500)||(iter==2000))
+     facteur += .002;*/
+    
+    UpdateField();                      /* Update light fields and seed banks */
+    UpdateTree();                       /* Update trees */
+    UpdateTreefall();                   /* Compute and distribute Treefall events */
+    Average();                          /* Compute averages for outputs */
+    OutputField();                      /* Output the statistics */
+}
+
+
+/*##################################
+ ####	Compute field LAI 3D    ####
+ ####	 Compute field Seed     ####
+ ##################################*/
+
+
+void UpdateField() {
+    
+    int site,haut,spp;
+    
+    /***  Compute Field LAI3D  ***/
+    /*****************************/
+    
+    
 #ifdef MPI                                                              /* Reinitialize field LAI3D */
-            for(i=0;i<2;i++)
-                for(haut=0;haut<(HEIGHT+1);haut++)
-                    for(site=0;site<2*SBORD;site++)
-                        LAIc[i][haut][site] = 0;
+    for(int i=0;i<2;i++)
+        for(haut=0;haut<(HEIGHT+1);haut++)
+            for(site=0;site<2*SBORD;site++)
+                LAIc[i][haut][site] = 0;
 #endif
-            
-            for(haut=0;haut<(HEIGHT+1);haut++)
-                for(site=0;site<sites+2*SBORD;site++)
-                    LAI3D[haut][site] = 0.0;
-            
-            for(site=0;site<sites;site++)                                    /* Each tree contribues to LAI3D */
-                T[site].CalcLAI();
-            
-            //float temp;
-            //float p1= 1.0-p;
-            //float p2 = p;
-            int sbsite;
-            //int cinde;
-            for(haut=HEIGHT;haut>0;haut--)                                 /* LAI is computed by summing LAI from the canopy top to the ground */
-                for(site=0;site<sites;site++){
-                    sbsite=site+SBORD;
+    
+    for(haut=0;haut<(HEIGHT+1);haut++)
+        for(site=0;site<sites+2*SBORD;site++)
+            LAI3D[haut][site] = 0.0;
+    
+    for(site=0;site<sites;site++)                                    /* Each tree contribues to LAI3D */
+        T[site].CalcLAI();
+    
+    //float temp;
+    //float p1= 1.0-p;
+    //float p2 = p;
+    int sbsite;
+    //int cinde;
+    for(haut=HEIGHT;haut>0;haut--)                                 /* LAI is computed by summing LAI from the canopy top to the ground */
+        for(site=0;site<sites;site++){
+            sbsite=site+SBORD;
 #ifdef ONLYVERTICAL                                                      /* Several choices of light incidence */
-                    LAI3D[haut-1][sbsite] += LAI3D[haut][sbsite];
+            LAI3D[haut-1][sbsite] += LAI3D[haut][sbsite];
 #else
-                    row0=site/cols;
-                    col0=site%cols;
-                    temp=0.0;
-                    cinde=0;
-                    if(col0>0) { cinde++;temp+=LAI3D[haut][sbsite-1]; }
-                    if(col0<cols-1) { cinde++;temp+=LAI3D[haut][sbsite+1]; }
-                    if(row0>0) { cinde++;temp+=LAI3D[haut][sbsite-cols]; }
-                    if(row0<rows-1) { cinde++;temp+=LAI3D[haut][sbsite+cols]; }
-                    //site2 = col+cols*row+SBORD;
-                    //temp=LAI3D[haut][sbsite-1]+LAI3D[haut][sbsite-cols]+LAI3D[haut][sbsite+1]+LAI3D[haut][sbsite+cols];
-                    //if((site<SBORD) || (site >= sites+SBORD)) temp =0;
-                    LAI3D[haut-1][sbsite] += p1*LAI3D[haut][sbsite]+p2*temp/float(cinde);
+            row0=site/cols;
+            col0=site%cols;
+            temp=0.0;
+            cinde=0;
+            if(col0>0) { cinde++;temp+=LAI3D[haut][sbsite-1]; }
+            if(col0<cols-1) { cinde++;temp+=LAI3D[haut][sbsite+1]; }
+            if(row0>0) { cinde++;temp+=LAI3D[haut][sbsite-cols]; }
+            if(row0<rows-1) { cinde++;temp+=LAI3D[haut][sbsite+cols]; }
+            //site2 = col+cols*row+SBORD;
+            //temp=LAI3D[haut][sbsite-1]+LAI3D[haut][sbsite-cols]+LAI3D[haut][sbsite+1]+LAI3D[haut][sbsite+cols];
+            //if((site<SBORD) || (site >= sites+SBORD)) temp =0;
+            LAI3D[haut-1][sbsite] += p1*LAI3D[haut][sbsite]+p2*temp/float(cinde);
 #endif
-                }
-            
-            /*  for(site=0;site<sites;site++)                               Trunks shade the cells in which they are
-             T[site].TrunkLAI();*/
-            
-            
-#ifdef MPI                                                              /* Communicate border of field */
-            MPI_ShareField(LAI3D,LAIc,2*SBORD);
-            for(haut=0;haut<(HEIGHT+1);haut++){                                 /* Add border effects in local fields */
-                if(p_rank)
-                    for(site=0;site<2*SBORD;site++)
-                        LAI3D[haut][site] += LAIc[0][haut][site];
-                if(p_rank<size-1)
-                    for(site=0;site<2*SBORD;site++)
-                        LAI3D[haut][site+sites] += LAIc[1][haut][site];
-            }
+        }
+    
+    /*  for(site=0;site<sites;site++)                               Trunks shade the cells in which they are
+     T[site].TrunkLAI();*/
+    
+    
+#ifdef MPI     /* Communicate border of field */
+    /*MPI_ShareField(LAI3D,LAIc,2*SBORD);
+     This MPI command no longer exists in openMPI
+     Action 20/01/2016 TODO: FIX THIS */
+    
+    for(haut=0;haut<(HEIGHT+1);haut++){                                 /* Add border effects in local fields */
+        if(p_rank)
+            for(site=0;site<2*SBORD;site++)
+                LAI3D[haut][site] += LAIc[0][haut][site];
+        if(p_rank<size-1)
+            for(site=0;site<2*SBORD;site++)
+                LAI3D[haut][site+sites] += LAIc[1][haut][site];
+    }
 #endif
-            
-            
-            
-            /*** Evolution of the field Seed **/
-            /*********************************/
-            
-            /* Pass seeds across processors => two more fields to be communicated between n.n. (nearest neighbor) processors.
-             NB: dispersal distance is bounded by the value of 'rows'.
-             At least 99 % of the seeds should be dispersed within the stripe or on the n.n. stripe.
-             Hence rows > 4.7*max(dist_moy_dissemination),for an exponential dispersal kernel.*/
-            
-            for(site=0;site<sites;site++)                                   /* Seeds produced by mature trees */
-                if(T[site].t_age)
-                    T[site].DisperseSeed();
-            
+    
+    /*** Evolution of the field Seed **/
+    /*********************************/
+    
+    /* Pass seeds across processors => two more fields to be communicated between n.n. (nearest neighbor) processors.
+     NB: dispersal distance is bounded by the value of 'rows'.
+     At least 99 % of the seeds should be dispersed within the stripe or on the n.n. stripe.
+     Hence rows > 4.7*max(dist_moy_dissemination),for an exponential dispersal kernel.*/
+    
+    for(site=0;site<sites;site++)                                   /* Seeds produced by mature trees */
+        if(T[site].t_age)
+            T[site].DisperseSeed();
+    
 #ifdef MPI                                                              /* Seeds passed across processors */
-            for(spp=1;spp<=numesp;spp++) {
-                MPI_ShareSeed(S[spp].s_Gc,sites);
-                S[spp].AddSeed();
-            }
+    for(spp=1;spp<=numesp;spp++) {
+        MPI_ShareSeed(S[spp].s_Gc,sites);
+        S[spp].AddSeed();
+    }
 #endif
-            
+    
 #if INHOMOGENE
-            if(!p_rank) {
+    if(!p_rank) {
 #endif
-                for(spp=1;spp<=numesp;spp++) {                              /* External seed rain: constant flux from the metacommunity */
-                    for(int ii=0;ii<S[spp].s_nbext;ii++){
-                        site = genrand2i()%sites;
+        for(spp=1;spp<=numesp;spp++) {                              /* External seed rain: constant flux from the metacommunity */
+            for(int ii=0;ii<S[spp].s_nbext;ii++){
+                site = genrand2i()%sites;
 #ifdef SEEDTRADEOFF
-                        S[spp].s_Seed[site]++;
+                S[spp].s_Seed[site]++;
 #else
-                        if(S[spp].s_Seed[site]!=1) S[spp].s_Seed[site] = 1;
+                if(S[spp].s_Seed[site]!=1) S[spp].s_Seed[site] = 1;
 #endif
-                    }
-                }
+            }
+        }
 #if INHOMOGENE
-            }
-            else{
-                for(spp=1;spp<=numesp;spp++) {
-                    if(S[spp].s_nbind*sites > 50000)
-                        for(int ii=0;ii<S[spp].s_nbext;ii++){
-                            site = genrand2i()%sites;
+    }
+    else{
+        for(spp=1;spp<=numesp;spp++) {
+            if(S[spp].s_nbind*sites > 50000)
+                for(int ii=0;ii<S[spp].s_nbext;ii++){
+                    site = genrand2i()%sites;
 #ifdef SEEDTRADEOFF
-                            S[spp].s_Seed[site]++;
+                    S[spp].s_Seed[site]++;
 #else
-                            if(S[spp].s_Seed[site]!=1) S[spp].s_Seed[site] = 1;
+                    if(S[spp].s_Seed[site]!=1) S[spp].s_Seed[site] = 1;
 #endif
-                        }
                 }
-            }
+        }
+    }
 #endif
-            
+    
 #ifdef MPI
-            MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 #endif
-            
-            
-            
+    
+
 #ifdef NDD
-            /*** Evolution of the field NDDfield **/
-            /**************************************/
-            
-            float R=15;
-            for(site=0;site<sites;site++) {
-                
-                
-                for(spp=1;spp<=numesp;spp++) {
-                    if (iter == int(nbiter/10))  {
-                        sor[142]<< T[site].t_NDDfield[spp] << "\t" ;
-                    }
-                    T[site].t_NDDfield[spp]=0;
+    /*** Evolution of the field NDDfield **/
+    /**************************************/
+    
+    float R=15;
+    for(site=0;site<sites;site++) {
+        
+        for(spp=1;spp<=numesp;spp++) {
+            if (iter == int(nbiter/10))  {
+                sor[142]<< T[site].t_NDDfield[spp] << "\t" ;
+            }
+            T[site].t_NDDfield[spp]=0;
+        }
+        sor[142]<< "\n";
+        
+        row0=T[site].t_site/cols;
+        col0=T[site].t_site%cols;
+        for(col=max(0,col0-R);col<=min(cols-1,col0+R);col++) {
+            for(row=max(0,row0-R);row<=min(rows-1,row0+R);row++) {                   /* loop over the neighbourhood */
+                xx=col0-col;
+                yy=row0-row;
+                float d=sqrt(xx*xx+yy*yy);
+                if((d<=R)&&(d>0))  {                                             /* is the voxel within the neighbourhood?  */
+                    int j=cols*row+col;
+                    if(T[j].t_age) T[site].t_NDDfield[T[j].t_sp_lab]+= PI* T[j].t_dbh * T[j].t_dbh*0.25/d;
                 }
-                sor[142]<< "\n";
-                
-                row0=T[site].t_site/cols;
-                col0=T[site].t_site%cols;
-                for(col=max(0,col0-R);col<=min(cols-1,col0+R);col++) {
-                    for(row=max(0,row0-R);row<=min(rows-1,row0+R);row++) {                   /* loop over the neighbourhood */
-                        xx=col0-col;
-                        yy=row0-row;
-                        float d=sqrt(xx*xx+yy*yy);
-                        if((d<=R)&&(d>0))  {                                             /* is the voxel within the neighbourhood?  */
-                            int j=cols*row+col;
-                            if(T[j].t_age) T[site].t_NDDfield[T[j].t_sp_lab]+= PI* T[j].t_dbh * T[j].t_dbh*0.25/d;
-                            
-                        }
-                        
-                        
-                    }
+            }
+        }
+    }
+#endif
+}
+
+
+/*##############################
+ ####	Birth, Growth       ####
+ ####	and death of trees  ####
+ ##############################*/
+
+void UpdateTree() {
+    
+    int site,spp,iii;
+    float flux;
+    
+    for(site=0;site<sites;site++) {                                     /***** Local germination *****/
+        if(T[site].t_age == 0) {
+            iii=0;
+#ifdef SEEDTRADEOFF
+            float tot=0;
+#endif
+            for(spp=1;spp<=numesp;spp++){                               /* lists all the species with a seed present at given site... */
+                if(S[spp].s_Seed[site]) {
+                    ESP_N[iii]=spp;
                     
-                }
-            }
-            
-            
-            
-            
-#endif
-            
-        }
-        
-        
-        
-        
-        
-        /*##############################
-         ####	Birth, Growth       ####
-         ####	and death of trees  ####
-         ##############################*/
-        
-        
-        
-        void UpdateTree() {
-            
-            int site,spp,iii;
-            float flux;
-            
-            for(site=0;site<sites;site++) {                                     /***** Local germination *****/
-                if(T[site].t_age == 0) {
-                    iii=0;
-#ifdef SEEDTRADEOFF
-                    float tot=0;
-#endif
-                    for(spp=1;spp<=numesp;spp++){                               /* lists all the species with a seed present at given site... */
-                        if(S[spp].s_Seed[site]) {
-                            ESP_N[iii]=spp;
-                            
 #ifdef SEEDTRADEOFF
 #ifdef NDD
-                            float p=S[spp].s_Seed[site]*S[spp].s_seedmass/(T[site].t_NDDfield[spp]*10000+1);
-                            PROB_S[iii]=tot+ p;
-                            tot+=p;
+                    float p=S[spp].s_Seed[site]*S[spp].s_seedmass/(T[site].t_NDDfield[spp]*10000+1);
+                    PROB_S[iii]=tot+ p;
+                    tot+=p;
 #else
-                            PROB_S[iii]=tot+ S[spp].s_Seed[site]*S[spp].s_seedmass;
-                            tot+=S[spp].s_Seed[site]*S[spp].s_seedmass;
+                    PROB_S[iii]=tot+ S[spp].s_Seed[site]*S[spp].s_seedmass;
+                    tot+=S[spp].s_Seed[site]*S[spp].s_seedmass;
 #endif
 #endif
-                            iii++;
-                        }
-                    }
-                    if(iii) {                                                   /* ... and then randomly select one of these species */
+                    iii++;
+                }
+            }
+            if(iii) {                                                   /* ... and then randomly select one of these species */
 #ifdef SEEDTRADEOFF
-                        double p=genrand2();                                    /* if SEEDTRADEOFF is define, probability of species recruit are proportional to the number of seeds time the seed mass, if NDD is also defnes the probablility is also inversly proportional to the species NDDfield term at that site */
-                        float itot=1/tot;
-                        int s=0;
-                        while (p>PROB_S[s]*itot) {s++;}
-                        spp=ESP_N[s];
+                double p=genrand2();                                    /* if SEEDTRADEOFF is define, probability of species recruit are proportional to the number of seeds time the seed mass, if NDD is also defnes the probablility is also inversly proportional to the species NDDfield term at that site */
+                float itot=1/tot;
+                int s=0;
+                while (p>PROB_S[s]*itot) {s++;}
+                spp=ESP_N[s];
 #else
-                        spp = ESP_N[rand()%iii];                                /* otherwise species are equiprobable */
+                spp = ESP_N[rand()%iii];                                /* otherwise species are equiprobable */
 #endif
-                        flux = Wmax*exp(-florif(LAI3D[0][site+SBORD])*klight);
-                        if(flux>(S[spp].s_LCP)){                                /* If enough light, germination, initialization of NPPleaf (LCP is the species light compensation point*/
-                            /* here, light is the sole environmental resources tested as a limiting factor for germination, but we should think about adding nutrients (N,P) and water conditions... */
-                            T[site].Birth(S,spp,site);
-                        }
-                    }
+                flux = Wmax*exp(-florif(LAI3D[0][site+SBORD])*klight);
+                if(flux>(S[spp].s_LCP)){                                /* If enough light, germination, initialization of NPPleaf (LCP is the species light compensation point*/
+                    /* here, light is the sole environmental resources tested as a limiting factor for germination, but we should think about adding nutrients (N,P) and water conditions... */
+                    T[site].Birth(S,spp,site);
                 }
             }
-            
-            
-            nbm_n1=nbm_n10=nbm_c1=nbm_c10=0;
-            for(site=0;site<sites;site++) {
-                T[site].Update();                                               /***** Tree evolution: Growth or death *****/
-                for(spp=1;spp<=numesp;spp++)                                    /***** Update the Seed field *****/
-                    S[spp].UpdateSeed(T[site].t_age,site);
-            }
-            
         }
-        
-        
-        
-        
-        
-        
-        
-        /******************************
-         *** Treefall gap formation ***
-         ******************************/
-        
-        
-        void UpdateTreefall(){
-            
-            int site;
-            
-            for(site=0;site<sites;site++){
-                Thurt[0][site] = Thurt[0][site+2*sites] = 0;
-                Thurt[0][site+sites] = 0;
-            }
-            
-            nbTreefall1 = 0;
-            nbTreefall10=0;
-            for(site=0;site<sites;site++)
-                if(T[site].t_age) {
-                    T[site].FallTree();
-                }
-            
-            
+    }
+    
+    
+    nbm_n1=nbm_n10=nbm_c1=nbm_c10=0;
+    for(site=0;site<sites;site++) {
+        T[site].Update();                                               /***** Tree evolution: Growth or death *****/
+        for(spp=1;spp<=numesp;spp++)                                    /***** Update the Seed field *****/
+            S[spp].UpdateSeed(T[site].t_age,site);
+    }
+}
+
+
+/******************************
+ *** Treefall gap formation ***
+ ******************************/
+
+void UpdateTreefall(){
+    
+    int site;
+    
+    for(site=0;site<sites;site++){
+        Thurt[0][site] = Thurt[0][site+2*sites] = 0;
+        Thurt[0][site+sites] = 0;
+    }
+    
+    nbTreefall1 = 0;
+    nbTreefall10=0;
+    for(site=0;site<sites;site++)
+        if(T[site].t_age) {
+            T[site].FallTree();
+        }
+    
+    
 #ifdef MPI                                                      /* Treefall field passed to the n.n. procs */
-            MPI_ShareTreefall(Thurt, sites);
+    MPI_ShareTreefall(Thurt, sites);
 #endif
-            
-            for(site=0;site<sites;site++)                           /* Update of Field hurt */
-                if(T[site].t_age) {
-                    T[site].t_hurt = Thurt[0][site+sites];
+    
+    for(site=0;site<sites;site++)                           /* Update of Field hurt */
+        if(T[site].t_age) {
+            T[site].t_hurt = Thurt[0][site+sites];
 #ifdef MPI
-                    if(p_rank) T[site].t_hurt = max(T[site].t_hurt,Thurt[1][site]);
-                    if(p_rank<size-1) T[site].t_hurt = max(T[site].t_hurt,Thurt[2][site]);
+            if(p_rank) T[site].t_hurt = max(T[site].t_hurt,Thurt[1][site]);
+            if(p_rank<size-1) T[site].t_hurt = max(T[site].t_hurt,Thurt[2][site]);
 #endif
-                }
+        }
+}
+
+
+/*###############################################
+ ###############################################
+ #######        Output routines         ########
+ ###############################################
+ ###############################################*/
+
+/*********************************************************
+ *** Calculation of the global averages every timestep ***
+ *********************************************************/
+
+void Average(void){
+    
+    int site,spp,i;
+    float sum1=0,sum10=0.0,sum30=0.0,ba=0.0,npp=0.0,gpp=0.0, ba10=0.0, agb=0.0;
+    
+    if(!p_rank) {
+        for(spp=1;spp<=numesp;spp++)
+            for(i=0;i<8;i++)
+                S[spp].s_chsor[i]=0;
+        
+        float inbcells = 1.0/float(sites*size);
+        float inbhectares = inbcells*NH*NH*10000.0;
+        for(i=0;i<7;i++)
+            sor[i] << iter << "\t";
+        for(spp=1;spp<=numesp;spp++)
+            sor[0] << float(S[spp].s_nbind)*inbhectares << "\t";
+        for(site=0;site<sites;site++)
+            T[site].Average();
+        
+        cout << iter << "\tNBtrees\t"<<nblivetrees << endl;
+        
+        for(spp=1;spp<=numesp;spp++) {
+            S[spp].s_chsor[1] *= inbhectares;      //species number of trees with dbh>10cm
+            S[spp].s_chsor[2] *= inbhectares;      //species number of trees with dbh>30cm
+            S[spp].s_chsor[3] *= 3.1415*0.25*inbhectares;           //species basal area
+            S[spp].s_chsor[4] *= inbhectares;                       //species total NPP (sum of t_NPPLeaf) in MgC (per timestep)
+            S[spp].s_chsor[5] *= inbhectares;                       //species total GPP (sum of t_GPP) in MgC (per timestep)
+            S[spp].s_chsor[6] *= 3.1415*0.25*inbhectares;           //species basal area; with only trees with dbh>10cm
+            S[spp].s_chsor[7] *= inbhectares;
+            sum1+= float(S[spp].s_nbind)*inbhectares;
+            sum10 += S[spp].s_chsor[1];
+            sum30 += S[spp].s_chsor[2];
+            ba += S[spp].s_chsor[3];
+            npp += S[spp].s_chsor[4];
+            gpp += S[spp].s_chsor[5];
+            ba10 += S[spp].s_chsor[6];
+            agb += S[spp].s_chsor[7];
+            for(i=1;i<7;i++) {
+                sor[i] << S[spp].s_chsor[i] << "\t";
+            }
+            sor[16] << S[spp].s_chsor[7] << "\t";
             
         }
+        sor[0] << sum1 << endl;                                     //total number of trees (dbh>1cm=DBH0)
+        sor[1] << sum10 << endl;                                    //total number of trees with dbh>10cm
+        sor[2] << sum30 << endl;                                    //total number of trees with dbh>30cm
+        sor[3] << ba << endl;                                       //total basal area
+        sor[4] << npp << endl;                                      //total NPP in MgC per ha (per time step)
+        sor[5] << gpp << endl;                                      //total GPP in MgC par ha (per time step)
+        sor[6] << ba10 << endl;                                     //total basal area with only trees with dbh>10cm
+        sor[16] << agb << endl;
         
-        
-        
-        
-        
-        /*###############################################
-         ###############################################
-         #######        Output routines         ########
-         ###############################################
-         ###############################################*/
-        
-        
-        /*********************************************************
-         *** Calculation of the global averages every timestep ***
-         *********************************************************/
-        
-        
-        void Average(void){
-            
-            int site,spp,i;
-            float sum1=0,sum10=0.0,sum30=0.0,ba=0.0,npp=0.0,gpp=0.0, ba10=0.0, agb=0.0;
-            
-            if(!p_rank) {
-                for(spp=1;spp<=numesp;spp++)
-                    for(i=0;i<8;i++)
-                        S[spp].s_chsor[i]=0;
-                
-                float inbcells = 1.0/float(sites*size);
-                float inbhectares = inbcells*NH*NH*10000.0;
-                for(i=0;i<7;i++)
-                    sor[i] << iter << "\t";
-                for(spp=1;spp<=numesp;spp++)
-                    sor[0] << float(S[spp].s_nbind)*inbhectares << "\t";
-                for(site=0;site<sites;site++)
-                    T[site].Average();
-                
-                cout << iter << "\tNBtrees\t"<<nblivetrees << endl;
-                
-                for(spp=1;spp<=numesp;spp++) {
-                    S[spp].s_chsor[1] *= inbhectares;                       //species number of trees with dbh>10cm
-                    S[spp].s_chsor[2] *= inbhectares;                       //species number of trees with dbh>30cm
-                    S[spp].s_chsor[3] *= 3.1415*0.25*inbhectares;           //species basal area
-                    S[spp].s_chsor[4] *= inbhectares;                       //species total NPP (sum of t_NPPLeaf) in MgC (per timestep)
-                    S[spp].s_chsor[5] *= inbhectares;                       //species total GPP (sum of t_GPP) in MgC (per timestep)
-                    S[spp].s_chsor[6] *= 3.1415*0.25*inbhectares;           //species basal area; with only trees with dbh>10cm
-                    S[spp].s_chsor[7] *= inbhectares;
-                    sum1+= float(S[spp].s_nbind)*inbhectares;
-                    sum10 += S[spp].s_chsor[1];
-                    sum30 += S[spp].s_chsor[2];
-                    ba += S[spp].s_chsor[3];
-                    npp += S[spp].s_chsor[4];
-                    gpp += S[spp].s_chsor[5];
-                    ba10 += S[spp].s_chsor[6];
-                    agb += S[spp].s_chsor[7];
-                    for(i=1;i<7;i++) {
-                        sor[i] << S[spp].s_chsor[i] << "\t";
-                    }
-                    sor[16] << S[spp].s_chsor[7] << "\t";
-                    
-                }
-                sor[0] << sum1 << endl;                                     //total number of trees (dbh>1cm=DBH0)
-                sor[1] << sum10 << endl;                                    //total number of trees with dbh>10cm
-                sor[2] << sum30 << endl;                                    //total number of trees with dbh>30cm
-                sor[3] << ba << endl;                                       //total basal area
-                sor[4] << npp << endl;                                      //total NPP in MgC per ha (per time step)
-                sor[5] << gpp << endl;                                      //total GPP in MgC par ha (per time step)
-                sor[6] << ba10 << endl;                                     //total basal area with only trees with dbh>10cm
-                sor[16] << agb << endl;
-                
-                float tototest=0.0, tototest2=0.0, flux;
-                for(site=0;site<sites;site++) {
-                    flux = Wmax*exp(-flor(LAI3D[0][site+SBORD])*klight);
-                    tototest += flux;
-                    tototest2 += flux*flux;
-                }
-                tototest /=float(sites*LH*LH);                              // Average light flux (PPFD) on the ground
-                tototest2 /=float(sites*LH*LH);
-                if(iter)
-                    sor[7] << iter<< "\tMean PPFDground\t"<< tototest << "\t" << sqrt(tototest2-tototest*tototest) << "\n";
-                
-                sor[8] << iter << "\t" << nbm_n1*inbhectares << "\t" << nbm_n10*inbhectares<< "\t" << nbm_c1*inbhectares << "\t" << nbm_c10*inbhectares << "\t" << nbTreefall1*inbhectares << "\t" << nbTreefall10*inbhectares << "\t" << endl;
-                
-                
-            }
-            
-#ifdef MPI
-            MPI_Reduce(&(S[spp].s_nbind),&sind,1,
-                       MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
-            MPI_Reduce(S[spp].s_chsor,S[spp].s_chsor,5,
-                       MPI_FLOAT,MPI_SUM,0,MPI_COMM_WORLD);
-            MPI_Reduce(Mortality,Mortality,4,
-                       MPI_FLOAT,MPI_SUM,0,MPI_COMM_WORLD);
-            MPI_Reduce(&S[spp].s_chsor[6],&S[spp].s_chsor[6],5,
-                       MPI_FLOAT,MPI_MAX,0,MPI_COMM_WORLD);
-#endif
-            
-            if(!p_rank) {
-                if(iter == 200){                                        // State at the 200th iteration (for all living trees: dbh, height, crown radius and depth and dbh increment)
-                    for(site=0;site<sites;site++) {
-                        if(T[site].t_dbh>0.0)
-                            sor[9] << T[site].t_dbh*LH*100 << "\t" << T[site].t_Tree_Height
-                            << "\t" << T[site].t_Crown_Radius*LH
-                            << "\t" << T[site].t_Crown_Depth*LV
-                            << "\t" << T[site].t_ddbh*LH*100 << "\n";
-                    }
-                }
-            }
-            cout.flush();
+        float tototest=0.0, tototest2=0.0, flux;
+        for(site=0;site<sites;site++) {
+            flux = Wmax*exp(-flor(LAI3D[0][site+SBORD])*klight);
+            tototest += flux;
+            tototest2 += flux*flux;
         }
+        tototest /=float(sites*LH*LH);                              // Average light flux (PPFD) on the ground
+        tototest2 /=float(sites*LH*LH);
+        if(iter)
+            sor[7] << iter<< "\tMean PPFDground\t"<< tototest << "\t" << sqrt(tototest2-tototest*tototest) << "\n";
         
-        
-        
-        
-        
-        /*********************************
-         **** Output de Fields Shares ****
-         *********************************/
-        
-        
-        
-        void OutputField(){
-            
-            /*sch[0] vertical occupation of the voxel field
-             
-             sch[1] dbh histogram
-             sch[2] mean LAI by height class
-             */
-            
-            int site,haut;
-            
-            if((nbout)&&((iter%freqout)==freqout-1)) {                          // output fields, nbout times during simulation (every freqout iterations)
-                
-                int d;
-                for(d=0;d<dbhmaxincm;d++){
-                    nbdbh[d]=0;
-                }
-                for(site=0;site<sites;site++)
-                    T[site].histdbh();
-                
-                for(haut=0;haut<(HEIGHT+1);haut++){
-                    layer[haut] = 0;
-                    for(site=0;site<sites;site++)
-                        layer[haut] += LAI3D[haut][site+SBORD];
-                }
-                
-#ifdef MPI
-                MPI_Status status;
-                MPI_Reduce(nbdbh,nbdbh,dbhmaxincm,
-                           MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
-                
-                MPI_Reduce(layer,layer,HEIGHT,
-                           MPI_FLOAT,MPI_SUM,0,MPI_COMM_WORLD);
-#endif
-                
-                if(!p_rank) {
-                    for(d=1;d<dbhmaxincm;d++)                                   // output of the dbh histograms (sch[1])
-                        sch[1] << d << "\t" << nbdbh[d]  << "\n";
-                    sch[1] <<  "\n";
-                    
-                    float norm = 1.0/float(sites*LH*LH*size);                   // output of the mean LAI per height class (sch[2])
-                    for(haut=0;haut<(HEIGHT+1);haut++)
-                        sch[2] << haut*LV << "\t" << layer[haut]*norm << "\n";
-                    sch[2] <<  "\n";
-                }
-                
+        sor[8] << iter << "\t" << nbm_n1*inbhectares << "\t" << nbm_n10*inbhectares<< "\t" << nbm_c1*inbhectares << "\t" << nbm_c10*inbhectares << "\t" << nbTreefall1*inbhectares << "\t" << nbTreefall10*inbhectares << "\t" << endl;
+    }
+    if(!p_rank) {
+        if(iter == 200){                                        // State at the 200th iteration (for all living trees: dbh, height, crown radius and depth and dbh increment)
+            for(site=0;site<sites;site++) {
+                if(T[site].t_dbh>0.0)
+                    sor[9] << T[site].t_dbh*LH*100 << "\t" << T[site].t_Tree_Height
+                    << "\t" << T[site].t_Crown_Radius*LH
+                    << "\t" << T[site].t_Crown_Depth*LV
+                    << "\t" << T[site].t_ddbh*LH*100 << "\n";
             }
         }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        void SorCh(unsigned short * sort, int rrows, int ccols, fstream &oflux) {
-            
-            int col,row;
-            //int ssites = rrows*ccols;
-            
-            /* Output for processor 0 */
-            if(!p_rank)
-                for(row=0;row<rrows;row++) {
-                    for(col=0;col<ccols;col++)
-                        oflux << sort[col+row*ccols] << " ";
-                    oflux << "\n";
-                }
+    }
+    
+    
 #ifdef MPI
-            /* Envoi du processeur ran sur le processeur 0, puis ecriture */
-            MPI_Status status;
-            MPI_Barrier(MPI_COMM_WORLD);
-            for(int ran=1;ran<size;ran++) {
-                if(p_rank==ran)
-                    MPI_Send(sort,ssites,MPI_UNSIGNED_SHORT,
-                             0,0,MPI_COMM_WORLD);
-                if(!p_rank) {
-                    MPI_Recv(sort,ssites,MPI_UNSIGNED_SHORT,
-                             ran,0,MPI_COMM_WORLD,&status);
-                    for(row=0;row<rrows;row++) {
-                        for(col=0;col<ccols;col++)
-                            oflux << sort[col+row*ccols] << " ";
-                        oflux << "\n";
-                    }
-                }
-            }
+    /* This section corresponds to the parallel version of
+     the reporting of the global diagnostic variables. Since much work has been done
+     on routine Average over the past years, this would need a full rewrite
+     !!!!Action 20/01/2016: rework the parallel version of function Average!!!!
+     
+     MPI_Reduce(&(S[spp].s_nbind),&sind,1,
+     MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
+     MPI_Reduce(S[spp].s_chsor,S[spp].s_chsor,5,
+     MPI_FLOAT,MPI_SUM,0,MPI_COMM_WORLD);
+     MPI_Reduce(Mortality,Mortality,4,
+     MPI_FLOAT,MPI_SUM,0,MPI_COMM_WORLD);
+     MPI_Reduce(&S[spp].s_chsor[6],&S[spp].s_chsor[6],5,
+     MPI_FLOAT,MPI_MAX,0,MPI_COMM_WORLD);
+     */
 #endif
-            if(!p_rank)   oflux <<  "\n";
-            
+    
+    cout.flush();
+}
+
+
+/*********************************
+ **** Output de Fields Shares ****
+ *********************************/
+
+void OutputField(){
+    
+    /*sch[0] vertical occupation of the voxel field
+     
+     sch[1] dbh histogram
+     sch[2] mean LAI by height class
+     */
+    
+    int site,haut;
+    
+    if((nbout)&&((iter%freqout)==freqout-1)) {                          // output fields, nbout times during simulation (every freqout iterations)
+        
+        int d;
+        for(d=0;d<dbhmaxincm;d++){
+            nbdbh[d]=0;
         }
+        for(site=0;site<sites;site++)
+            T[site].histdbh();
         
-        
-        
-        
-        
-        
+        for(haut=0;haut<(HEIGHT+1);haut++){
+            layer[haut] = 0;
+            for(site=0;site<sites;site++)
+                layer[haut] += LAI3D[haut][site+SBORD];
+        }
         
 #ifdef MPI
+        MPI_Status status;
+        MPI_Reduce(nbdbh,nbdbh,dbhmaxincm,
+                   MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
         
-        /* Communication des Fields de bord */
-        void MPI_ShareSeed(unsigned char **c, int n) {
-            
-            MPI_Status status;
-            
-            if(p_rank == size-1)
-                MPI_Sendrecv(c[0],n,MPI_UNSIGNED_CHAR,size-2,0,
-                             c[3],n,MPI_UNSIGNED_CHAR,0,0,MPI_COMM_WORLD,&status);
-            if(p_rank == 0)
-                MPI_Sendrecv(c[0],n,MPI_UNSIGNED_CHAR,size-1,0,
-                             c[3],n,MPI_UNSIGNED_CHAR,1,0,MPI_COMM_WORLD,&status);
-            if((p_rank) && (p_rank < size-1))
-                MPI_Sendrecv(c[0],n,MPI_UNSIGNED_CHAR,p_rank-1,0,
-                             c[3],n,MPI_UNSIGNED_CHAR,p_rank+1,0,MPI_COMM_WORLD,&status);
-            
-            if(p_rank == 0)
-                MPI_Sendrecv(c[1],n,MPI_UNSIGNED_CHAR,1,1,
-                             c[2],n,MPI_UNSIGNED_CHAR,size-1,1,MPI_COMM_WORLD,&status);
-            if(p_rank == size-1)
-                MPI_Sendrecv(c[1],n,MPI_UNSIGNED_CHAR,0,1,
-                             c[2],n,MPI_UNSIGNED_CHAR,size-2,1,MPI_COMM_WORLD,&status);
-            if((p_rank) && (p_rank < size-1))
-                MPI_Sendrecv(c[1],n,MPI_UNSIGNED_CHAR,p_rank+1,1,
-                             c[2],n,MPI_UNSIGNED_CHAR,p_rank-1,1,MPI_COMM_WORLD,&status);
-            
-        }
-        
-        void MPI_ShareField(unsigned short **cl, unsigned short ***cp, int n) {
-            
-            MPI_Status status;
-            for(int haut=0;haut<(HEIGHT+1);haut++) {
-                if(p_rank == 0)
-                    MPI_Sendrecv(cl[haut],n,MPI_UNSIGNED_SHORT,size-1,haut,
-                                 cp[1][haut],n,MPI_UNSIGNED_SHORT,1,haut,
-                                 MPI_COMM_WORLD,&status);
-                if(p_rank == size-1)
-                    MPI_Sendrecv(cl[haut],n,MPI_UNSIGNED_SHORT,size-2,haut,
-                                 cp[1][haut],n,MPI_UNSIGNED_SHORT,0,haut,
-                                 MPI_COMM_WORLD,&status);
-                if((p_rank) && (p_rank < size-1))
-                    MPI_Sendrecv(cl[haut],n,MPI_UNSIGNED_SHORT,p_rank-1,haut,
-                                 cp[1][haut],n,MPI_UNSIGNED_SHORT,p_rank+1,haut,
-                                 MPI_COMM_WORLD,&status);
-                
-                if(p_rank == 0)
-                    MPI_Sendrecv(cl[haut]+sites,n,MPI_UNSIGNED_SHORT,1,haut+HEIGHT,
-                                 cp[0][haut],n,MPI_UNSIGNED_SHORT,size-1,haut+HEIGHT,
-                                 MPI_COMM_WORLD,&status);
-                if(p_rank == size-1)
-                    MPI_Sendrecv(cl[haut]+sites,n,MPI_UNSIGNED_SHORT,0,haut+HEIGHT,
-                                 cp[0][haut],n,MPI_UNSIGNED_SHORT,size-2,haut+HEIGHT,
-                                 MPI_COMM_WORLD,&status);
-                if((p_rank) && (p_rank < size-1))
-                    MPI_Sendrecv(cl[haut]+sites,n,MPI_UNSIGNED_SHORT,p_rank+1,haut+HEIGHT,
-                                 cp[0][haut],n,MPI_UNSIGNED_SHORT,p_rank-1,haut+HEIGHT,
-                                 MPI_COMM_WORLD,&status);
-            }
-        }
-        
-        void MPI_ShareTreefall(unsigned short **c, int n) {
-            
-            MPI_Status status;
-            if(p_rank == 0)
-                MPI_Sendrecv(c[0],n,MPI_UNSIGNED_SHORT,size-1,0,
-                             c[2],n,MPI_UNSIGNED_SHORT,1,0,MPI_COMM_WORLD,&status);
-            if(p_rank == size-1)
-                MPI_Sendrecv(c[0],n,MPI_UNSIGNED_SHORT,size-2,0,
-                             c[2],n,MPI_UNSIGNED_SHORT,0,0,MPI_COMM_WORLD,&status);
-            if((p_rank) && (p_rank < size-1))
-                MPI_Sendrecv(c[0],n,MPI_UNSIGNED_SHORT,p_rank-1,0,
-                             c[2],n,MPI_UNSIGNED_SHORT,p_rank+1,0,MPI_COMM_WORLD,&status);
-            
-            if(p_rank == 0)
-                MPI_Sendrecv(c[0]+2*n,n,MPI_UNSIGNED_SHORT,1,1,
-                             c[1],n,MPI_UNSIGNED_SHORT,size-1,1,MPI_COMM_WORLD,&status);
-            if(p_rank == size-1)
-                MPI_Sendrecv(c[0]+2*n,n,MPI_UNSIGNED_SHORT,0,1,
-                             c[1],n,MPI_UNSIGNED_SHORT,size-2,1,MPI_COMM_WORLD,&status);
-            if((p_rank) && (p_rank < size-1))
-                MPI_Sendrecv(c[0]+2*n,n,MPI_UNSIGNED_SHORT,p_rank+1,1,
-                             c[1],n,MPI_UNSIGNED_SHORT,p_rank-1,1,MPI_COMM_WORLD,&status);
-        }
-        
+        MPI_Reduce(layer,layer,HEIGHT,
+                   MPI_FLOAT,MPI_SUM,0,MPI_COMM_WORLD);
 #endif
         
-        
-        
-        
-        
-        /******************************************
-         ******************************************
-         *******  Free dynamic memory  ************
-         ******************************************
-         ******************************************/
-        
-        
-        
-        void FreeMem () {
+        if(!p_rank) {
+            for(d=1;d<dbhmaxincm;d++)                                   // output of the dbh histograms (sch[1])
+                sch[1] << d << "\t" << nbdbh[d]  << "\n";
+            sch[1] <<  "\n";
             
-            delete [] T;
-            delete [] S;
-            delete [] nbdbh;
-            delete [] layer;
-            delete [] tempch;
-            delete [] tempch2;
-            delete [] ESP_N;
+            float norm = 1.0/float(sites*LH*LH*size);                   // output of the mean LAI per height class (sch[2])
+            for(haut=0;haut<(HEIGHT+1);haut++)
+                sch[2] << haut*LV << "\t" << layer[haut]*norm << "\n";
+            sch[2] <<  "\n";
+        }
+    }
+}
+
+
+void SorCh(unsigned short * sort, int rrows, int ccols, fstream &oflux) {
+    
+    int col,row;
+    
+    /* Output for processor 0 */
+    if(!p_rank)
+        for(row=0;row<rrows;row++) {
+            for(col=0;col<ccols;col++)
+                oflux << sort[col+row*ccols] << " ";
+            oflux << "\n";
+        }
+#ifdef MPI
+    /* Envoi du processeur ran sur le processeur 0, puis ecriture */
+    int ssites = rrows*ccols;
+    MPI_Status status;
+    MPI_Barrier(MPI_COMM_WORLD);
+    for(int ran=1;ran<size;ran++) {
+        if(p_rank==ran)
+            MPI_Send(sort,ssites,MPI_UNSIGNED_SHORT,
+                     0,0,MPI_COMM_WORLD);
+        if(!p_rank) {
+            MPI_Recv(sort,ssites,MPI_UNSIGNED_SHORT,
+                     ran,0,MPI_COMM_WORLD,&status);
+            for(row=0;row<rrows;row++) {
+                for(col=0;col<ccols;col++)
+                    oflux << sort[col+row*ccols] << " ";
+                oflux << "\n";
+            }
+        }
+    }
+#endif
+    if(!p_rank)   oflux <<  "\n";
+    
+}
+
+#ifdef MPI
+
+/* Communication of border fields in the parallel version of the code */
+/* Only if the MPI option has been enabled */
+void MPI_ShareSeed(unsigned char **c, int n) {
+    
+    MPI_Status status;
+    
+    if(p_rank == size-1)
+        MPI_Sendrecv(c[0],n,MPI_UNSIGNED_CHAR,size-2,0,
+                     c[3],n,MPI_UNSIGNED_CHAR,0,0,MPI_COMM_WORLD,&status);
+    if(p_rank == 0)
+        MPI_Sendrecv(c[0],n,MPI_UNSIGNED_CHAR,size-1,0,
+                     c[3],n,MPI_UNSIGNED_CHAR,1,0,MPI_COMM_WORLD,&status);
+    if((p_rank) && (p_rank < size-1))
+        MPI_Sendrecv(c[0],n,MPI_UNSIGNED_CHAR,p_rank-1,0,
+                     c[3],n,MPI_UNSIGNED_CHAR,p_rank+1,0,MPI_COMM_WORLD,&status);
+    
+    if(p_rank == 0)
+        MPI_Sendrecv(c[1],n,MPI_UNSIGNED_CHAR,1,1,
+                     c[2],n,MPI_UNSIGNED_CHAR,size-1,1,MPI_COMM_WORLD,&status);
+    if(p_rank == size-1)
+        MPI_Sendrecv(c[1],n,MPI_UNSIGNED_CHAR,0,1,
+                     c[2],n,MPI_UNSIGNED_CHAR,size-2,1,MPI_COMM_WORLD,&status);
+    if((p_rank) && (p_rank < size-1))
+        MPI_Sendrecv(c[1],n,MPI_UNSIGNED_CHAR,p_rank+1,1,
+                     c[2],n,MPI_UNSIGNED_CHAR,p_rank-1,1,MPI_COMM_WORLD,&status);
+}
+
+void MPI_ShareField(unsigned short **cl, unsigned short ***cp, int n) {
+    
+    MPI_Status status;
+    for(int haut=0;haut<(HEIGHT+1);haut++) {
+        if(p_rank == 0)
+            MPI_Sendrecv(cl[haut],n,MPI_UNSIGNED_SHORT,size-1,haut,
+                         cp[1][haut],n,MPI_UNSIGNED_SHORT,1,haut,
+                         MPI_COMM_WORLD,&status);
+        if(p_rank == size-1)
+            MPI_Sendrecv(cl[haut],n,MPI_UNSIGNED_SHORT,size-2,haut,
+                         cp[1][haut],n,MPI_UNSIGNED_SHORT,0,haut,
+                         MPI_COMM_WORLD,&status);
+        if((p_rank) && (p_rank < size-1))
+            MPI_Sendrecv(cl[haut],n,MPI_UNSIGNED_SHORT,p_rank-1,haut,
+                         cp[1][haut],n,MPI_UNSIGNED_SHORT,p_rank+1,haut,
+                         MPI_COMM_WORLD,&status);
+        
+        if(p_rank == 0)
+            MPI_Sendrecv(cl[haut]+sites,n,MPI_UNSIGNED_SHORT,1,haut+HEIGHT,
+                         cp[0][haut],n,MPI_UNSIGNED_SHORT,size-1,haut+HEIGHT,
+                         MPI_COMM_WORLD,&status);
+        if(p_rank == size-1)
+            MPI_Sendrecv(cl[haut]+sites,n,MPI_UNSIGNED_SHORT,0,haut+HEIGHT,
+                         cp[0][haut],n,MPI_UNSIGNED_SHORT,size-2,haut+HEIGHT,
+                         MPI_COMM_WORLD,&status);
+        if((p_rank) && (p_rank < size-1))
+            MPI_Sendrecv(cl[haut]+sites,n,MPI_UNSIGNED_SHORT,p_rank+1,haut+HEIGHT,
+                         cp[0][haut],n,MPI_UNSIGNED_SHORT,p_rank-1,haut+HEIGHT,
+                         MPI_COMM_WORLD,&status);
+    }
+}
+
+void MPI_ShareTreefall(unsigned short **c, int n) {
+    
+    MPI_Status status;
+    if(p_rank == 0)
+        MPI_Sendrecv(c[0],n,MPI_UNSIGNED_SHORT,size-1,0,
+                     c[2],n,MPI_UNSIGNED_SHORT,1,0,MPI_COMM_WORLD,&status);
+    if(p_rank == size-1)
+        MPI_Sendrecv(c[0],n,MPI_UNSIGNED_SHORT,size-2,0,
+                     c[2],n,MPI_UNSIGNED_SHORT,0,0,MPI_COMM_WORLD,&status);
+    if((p_rank) && (p_rank < size-1))
+        MPI_Sendrecv(c[0],n,MPI_UNSIGNED_SHORT,p_rank-1,0,
+                     c[2],n,MPI_UNSIGNED_SHORT,p_rank+1,0,MPI_COMM_WORLD,&status);
+    if(p_rank == 0)
+        MPI_Sendrecv(c[0]+2*n,n,MPI_UNSIGNED_SHORT,1,1,
+                     c[1],n,MPI_UNSIGNED_SHORT,size-1,1,MPI_COMM_WORLD,&status);
+    if(p_rank == size-1)
+        MPI_Sendrecv(c[0]+2*n,n,MPI_UNSIGNED_SHORT,0,1,
+                     c[1],n,MPI_UNSIGNED_SHORT,size-2,1,MPI_COMM_WORLD,&status);
+    if((p_rank) && (p_rank < size-1))
+        MPI_Sendrecv(c[0]+2*n,n,MPI_UNSIGNED_SHORT,p_rank+1,1,
+                     c[1],n,MPI_UNSIGNED_SHORT,p_rank-1,1,MPI_COMM_WORLD,&status);
+}
+
+#endif
+
+
+/******************************************
+ ******************************************
+ *******  Free dynamic memory  ************
+ ******************************************
+ ******************************************/
+
+void FreeMem () {
+    
+    delete [] T;
+    delete [] S;
+    delete [] nbdbh;
+    delete [] layer;
+    delete [] tempch;
+    delete [] tempch2;
+    delete [] ESP_N;
 #ifdef SEEDTRADEOFF
-            delete [] PROB_S;
+    delete [] PROB_S;
 #endif
-            
-            int haut;
-            for (haut=0; haut<(HEIGHT+1); haut++) {
-                delete [] LAI3D[haut];
-            }
-            delete [] LAI3D;
-            
-            int i;
-            for (i=0; i<3; i++) {
-                delete [] Thurt[i];
-            }
-            
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        /********************************************
-         ********************************************
-         ***** GENERATEUR DE NOMBRES ALEATOIRES *****
-         ********************************************
-         ********************************************/
-        
-        
-        /* Copyright (C) 1997 Makoto Matsumoto and Takuji Nishimura.       */
-        /* When you use this, send an email to: matumoto@math.keio.ac.jp   */
-        /* with an appropriate reference to your work.                     */
-        
-        //#include<stdio.h>
-        
-        /* Period parameters */
+    
+    int haut;
+    for (haut=0; haut<(HEIGHT+1); haut++) {
+        delete [] LAI3D[haut];
+    }
+    delete [] LAI3D;
+    
+    int i;
+    for (i=0; i<3; i++) {
+        delete [] Thurt[i];
+    }
+}
+
+
+/***********************************
+ ***********************************
+ ***** RANDOM NUMBER GENERATOR *****
+ ***********************************
+ ***********************************/
+
+/* Copyright (C) 1997 Makoto Matsumoto and Takuji Nishimura.       */
+/* When you use this, send an email to: matumoto@math.keio.ac.jp   */
+/* with an appropriate reference to your work.                     */
+
+//#include<stdio.h>
+
+/* Period parameters */
 #define N 624
 #define M 397
 #define MATRIX_A 0x9908b0df   /* constant vector a */
 #define UPPER_MASK 0x80000000 /* most significant w-r bits */
 #define LOWER_MASK 0x7fffffff /* least significant r bits */
-        
-        /* Tempering parameters */
+
+/* Tempering parameters */
 #define TEMPERING_MASK_B 0x9d2c5680
 #define TEMPERING_MASK_C 0xefc60000
 #define TEMPERING_SHIFT_U(y)  (y >> 11)
 #define TEMPERING_SHIFT_S(y)  (y << 7)
 #define TEMPERING_SHIFT_T(y)  (y << 15)
 #define TEMPERING_SHIFT_L(y)  (y >> 18)
+
+static unsigned long mt[N]; /* the array for the state vector  */
+static int mti=N+1; /* mti==N+1 means mt[N] is not initialized */
+
+/* initializing the array with a NONZERO seed */
+void sgenrand2(unsigned long seed)
+{
+    /* setting initial seeds to mt[N] using         */
+    /* the generator Line 25 of Table 1 in          */
+    /* [KNUTH 1981, The Art of Computer Programming */
+    /*    Vol. 2 (2nd Ed.), pp102]                  */
+    mt[0]= seed & 0xffffffff;
+    for (mti=1; mti<N; mti++)
+        mt[mti] = (69069 * mt[mti-1]) & 0xffffffff;
+}
+
+/* generating reals */
+/* unsigned long */ /* for integer generation */
+double genrand2()
+{
+    unsigned long y;
+    static unsigned long mag01[2]={0x0, MATRIX_A};
+    /* mag01[x] = x * MATRIX_A  for x=0,1 */
+    
+    if (mti >= N) { /* generate N words at one time */
+        int kk;
         
-        static unsigned long mt[N]; /* the array for the state vector  */
-        static int mti=N+1; /* mti==N+1 means mt[N] is not initialized */
+        if (mti == N+1)   /* if sgenrand() has not been called, */
+            sgenrand2(4357); /* a default initial seed is used   */
         
-        /* initializing the array with a NONZERO seed */
-        void sgenrand2(unsigned long seed)
-        {
-            /* setting initial seeds to mt[N] using         */
-            /* the generator Line 25 of Table 1 in          */
-            /* [KNUTH 1981, The Art of Computer Programming */
-            /*    Vol. 2 (2nd Ed.), pp102]                  */
-            mt[0]= seed & 0xffffffff;
-            for (mti=1; mti<N; mti++)
-                mt[mti] = (69069 * mt[mti-1]) & 0xffffffff;
+        for (kk=0;kk<N-M;kk++) {
+            y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
+            mt[kk] = mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1];
         }
-        
-        /* generating reals */
-        /* unsigned long */ /* for integer generation */
-        double genrand2()
-        {
-            unsigned long y;
-            static unsigned long mag01[2]={0x0, MATRIX_A};
-            /* mag01[x] = x * MATRIX_A  for x=0,1 */
-            
-            if (mti >= N) { /* generate N words at one time */
-                int kk;
-                
-                if (mti == N+1)   /* if sgenrand() has not been called, */
-                    sgenrand2(4357); /* a default initial seed is used   */
-                
-                for (kk=0;kk<N-M;kk++) {
-                    y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
-                    mt[kk] = mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1];
-                }
-                for (;kk<N-1;kk++) {
-                    y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
-                    mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1];
-                }
-                y = (mt[N-1]&UPPER_MASK)|(mt[0]&LOWER_MASK);
-                mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1];
-                
-                mti = 0;
-            }
-            
-            y = mt[mti++];
-            y ^= TEMPERING_SHIFT_U(y);
-            y ^= TEMPERING_SHIFT_S(y) & TEMPERING_MASK_B;
-            y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
-            y ^= TEMPERING_SHIFT_L(y);
-            
-            return ( (double)y / (unsigned long)0xffffffff ); /* reals */
-            /* return y; */ /* for integer generation */
+        for (;kk<N-1;kk++) {
+            y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
+            mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1];
         }
+        y = (mt[N-1]&UPPER_MASK)|(mt[0]&LOWER_MASK);
+        mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1];
         
+        mti = 0;
+    }
+    
+    y = mt[mti++];
+    y ^= TEMPERING_SHIFT_U(y);
+    y ^= TEMPERING_SHIFT_S(y) & TEMPERING_MASK_B;
+    y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
+    y ^= TEMPERING_SHIFT_L(y);
+    
+    return ( (double)y / (unsigned long)0xffffffff ); /* reals */
+    /* return y; */ /* for integer generation */
+}
+
+
+/* initializing the array with a NONZERO seed */
+void sgenrand2i(unsigned long seed)
+{
+    /* setting initial seeds to mt[N] using         */
+    /* the generator Line 25 of Table 1 in          */
+    /* [KNUTH 1981, The Art of Computer Programming */
+    /*    Vol. 2 (2nd Ed.), pp102]                  */
+    mt[0]= seed & 0xffffffff;
+    for (mti=1; mti<N; mti++)
+        mt[mti] = (69069 * mt[mti-1]) & 0xffffffff;
+}
+
+unsigned long genrand2i()
+{
+    unsigned long y;
+    static unsigned long mag01[2]={0x0, MATRIX_A};
+    /* mag01[x] = x * MATRIX_A  for x=0,1 */
+    
+    if (mti >= N) { /* generate N words at one time */
+        int kk;
         
-        /* initializing the array with a NONZERO seed */
-        void sgenrand2i(unsigned long seed)
-        {
-            /* setting initial seeds to mt[N] using         */
-            /* the generator Line 25 of Table 1 in          */
-            /* [KNUTH 1981, The Art of Computer Programming */
-            /*    Vol. 2 (2nd Ed.), pp102]                  */
-            mt[0]= seed & 0xffffffff;
-            for (mti=1; mti<N; mti++)
-                mt[mti] = (69069 * mt[mti-1]) & 0xffffffff;
+        if (mti == N+1)   /* if sgenrand() has not been called, */
+            sgenrand2i(4357); /* a default initial seed is used   */
+        
+        for (kk=0;kk<N-M;kk++) {
+            y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
+            mt[kk] = mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1];
         }
-        
-        unsigned long genrand2i()
-        {
-            unsigned long y;
-            static unsigned long mag01[2]={0x0, MATRIX_A};
-            /* mag01[x] = x * MATRIX_A  for x=0,1 */
-            
-            if (mti >= N) { /* generate N words at one time */
-                int kk;
-                
-                if (mti == N+1)   /* if sgenrand() has not been called, */
-                    sgenrand2i(4357); /* a default initial seed is used   */
-                
-                for (kk=0;kk<N-M;kk++) {
-                    y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
-                    mt[kk] = mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1];
-                }
-                for (;kk<N-1;kk++) {
-                    y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
-                    mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1];
-                }
-                y = (mt[N-1]&UPPER_MASK)|(mt[0]&LOWER_MASK);
-                mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1];
-                
-                mti = 0;
-            }
-            
-            y = mt[mti++];
-            y ^= TEMPERING_SHIFT_U(y);
-            y ^= TEMPERING_SHIFT_S(y) & TEMPERING_MASK_B;
-            y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
-            y ^= TEMPERING_SHIFT_L(y);
-            
-            return y;
+        for (;kk<N-1;kk++) {
+            y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
+            mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1];
         }
+        y = (mt[N-1]&UPPER_MASK)|(mt[0]&LOWER_MASK);
+        mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1];
         
-        
-        
-        
-        
-        
-        
-        
-        
+        mti = 0;
+    }
+    
+    y = mt[mti++];
+    y ^= TEMPERING_SHIFT_U(y);
+    y ^= TEMPERING_SHIFT_S(y) & TEMPERING_MASK_B;
+    y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
+    y ^= TEMPERING_SHIFT_L(y);
+    
+    return y;
+}
+
